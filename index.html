@@ -80,6 +80,25 @@ input,select{width:100%;height:46px;border:1px solid var(--line);border-radius:1
 #ext tbody tr:nth-child(even) td{background:#f5f8f6}
 #ext .r{text-align:right;white-space:nowrap}
 #ext .pie{margin-top:12px;color:#62736c;font-size:10px}}
+details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0 14px}
+summary{cursor:pointer;font-weight:600;padding:14px 0}
+details[open] summary{border-bottom:1px solid var(--line);margin-bottom:12px}
+details>div{padding-bottom:14px}
+.cin{color:var(--in)}.cout{color:var(--out)!important}
+.leg{display:flex;gap:14px;font-size:13px;margin-bottom:8px}
+.gm{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;text-align:center}
+.bs{height:130px;display:flex;align-items:flex-end;justify-content:center;gap:3px}
+.bs i{display:block;width:40%;max-width:18px;border-radius:4px 4px 0 0}
+.bi{background:var(--in)}.be{background:var(--out)}
+.mc b{display:block;font-size:12px;text-transform:capitalize;margin-top:4px}
+.mc small{display:block;font-size:10px}
+.pr{margin-bottom:14px}
+.pt{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pt input{width:140px;height:38px;text-align:right}
+.pb{height:8px;background:var(--line);border-radius:4px;margin:6px 0 2px;overflow:hidden}
+.pb i{display:block;height:100%;background:var(--in)}.pb i.over{background:var(--out)}
+.pr small{color:var(--mute);font-size:12px}
+.pres{font-weight:600;margin-bottom:12px}
 </style>
 </head>
 <body>
@@ -92,6 +111,8 @@ input,select{width:100%;height:46px;border:1px solid var(--line);border-radius:1
 <div class="dos"><div><small>Ingresos</small><b id="tin"></b></div><div><small>Gastos</small><b id="tout"></b></div></div>
 </div>
 <section id="resumen" hidden><h2>En qué se fue la plata</h2><div id="cats"></div></section>
+<section><details id="dG"><summary>Gráfico mes a mes</summary><div id="grafM"></div></details></section>
+<section><details id="dP"><summary>Presupuesto mensual</summary><div id="presu"></div></details></section>
 <section><h2>Movimientos</h2>
 <div class="filtros">
 <input id="fq" type="search" placeholder="Buscar por nota, categoría o monto" aria-label="Buscar">
@@ -131,7 +152,7 @@ var $=function(i){return document.getElementById(i)};
 var cop=new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0});
 function hoy(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function pintar(){llenarFiltros();
+function pintar(){llenarFiltros();grafica();presupuesto();
   var p=ver.getFullYear()+"-"+String(ver.getMonth()+1).padStart(2,"0");
   $("mesTxt").textContent=ver.toLocaleDateString("es-CO",{month:"long",year:"numeric"});
   var q=$("fq").value.trim().toLowerCase(),ft=$("ft").value,fc=$("fc").value,fm=$("fm").value,fp=$("fp").value;
@@ -186,6 +207,27 @@ $("guardar").onclick=function(){
 $("lista").onclick=function(e){var b=e.target.closest("button");if(!b)return;if(confirm("¿Borrar este movimiento?")){datos=datos.filter(function(x){return String(x.id)!==b.dataset.id});guardar();pintar()}};
 $("ant").onclick=function(){ver.setMonth(ver.getMonth()-1);pag=1;pintar()};
 $("sig").onclick=function(){ver.setMonth(ver.getMonth()+1);pag=1;pintar()};
+var PK="mis-gastos-presu",PRE={};
+function lpre(){try{var r=localStorage.getItem(PK);PRE=r?JSON.parse(r):{}}catch(e){PRE={}}}
+function gpre(){try{localStorage.setItem(PK,JSON.stringify(PRE))}catch(e){}}
+function mesKey(){return ver.getFullYear()+"-"+String(ver.getMonth()+1).padStart(2,"0")}
+function gMes(){var p=mesKey(),g={};datos.forEach(function(x){if(x.tipo==="e"&&x.fecha.slice(0,7)===p)g[x.cat]=(g[x.cat]||0)+x.monto});return g}
+function corto(n){return n>=1e6?(n/1e6).toFixed(1).replace(".",",")+"M":n>=1e3?Math.round(n/1e3)+"k":String(n)}
+function grafica(){
+  var ms=[],i,d;
+  for(i=5;i>=0;i--){d=new Date(ver.getFullYear(),ver.getMonth()-i,1);ms.push({k:d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"),n:d.toLocaleDateString("es-CO",{month:"short"}).replace(".",""),i:0,e:0})}
+  datos.forEach(function(x){var k=x.fecha.slice(0,7);ms.forEach(function(m){if(m.k===k){if(x.tipo==="i")m.i+=x.monto;else m.e+=x.monto}})});
+  var mx=Math.max.apply(null,ms.map(function(m){return Math.max(m.i,m.e)}).concat([1])),h=function(v){return v?Math.max(2,v/mx*100):0};
+  $("grafM").innerHTML='<div class="leg"><span class="cin">■ Ingresos</span><span class="cout">■ Gastos</span></div><div class="gm">'+ms.map(function(m){return '<div class="mc"><div class="bs"><i class="bi" style="height:'+h(m.i)+'%"></i><i class="be" style="height:'+h(m.e)+'%"></i></div><b>'+m.n+'</b><small class="cin">'+corto(m.i)+'</small><small class="cout">'+corto(m.e)+'</small></div>'}).join("")+'</div>'}
+function presupuesto(){
+  var g=gMes(),cs=CATS.e.slice(),tp=0,tg=0;
+  Object.keys(g).concat(Object.keys(PRE)).forEach(function(k){if(cs.indexOf(k)<0)cs.push(k)});
+  var h=cs.map(function(k){var b=PRE[k]||0,s=g[k]||0;if(b){tp+=b;tg+=s}
+    var pc=b?Math.min(100,s/b*100):0,pas=b&&s>b;
+    return '<div class="pr"><div class="pt"><span>'+esc(k)+'</span><input data-k="'+esc(k)+'" inputmode="numeric" placeholder="Presupuesto" value="'+(b?b.toLocaleString("es-CO"):"")+'" aria-label="Presupuesto de '+esc(k)+'"></div>'+(b?'<div class="pb"><i style="width:'+pc+'%" class="'+(pas?"over":"")+'"></i></div><small class="'+(pas?"cout":"")+'">Gastado '+cop.format(s)+' de '+cop.format(b)+' · '+(pas?"te pasaste "+cop.format(s-b):"quedan "+cop.format(b-s))+'</small>':(s?'<small>Gastado '+cop.format(s)+' · sin presupuesto</small>':''))+'</div>'}).join("");
+  $("presu").innerHTML=(tp?'<div class="pres">Presupuesto total '+cop.format(tp)+' · gastado '+cop.format(tg)+' · '+(tg>tp?"te pasaste "+cop.format(tg-tp):"quedan "+cop.format(tp-tg))+'</div>':'<div class="aviso">Escribe un monto junto a una categoría para fijar su presupuesto mensual.</div>')+h}
+$("presu").addEventListener("input",function(e){var t=e.target;if(t.dataset.k===undefined)return;var n=t.value.replace(/\D/g,"");t.value=n?Number(n).toLocaleString("es-CO"):""});
+$("presu").addEventListener("change",function(e){var t=e.target;if(t.dataset.k===undefined)return;var n=parseInt(t.value.replace(/\D/g,""),10)||0;if(n)PRE[t.dataset.k]=n;else delete PRE[t.dataset.k];gpre();presupuesto()});
 function op(v){return '<option value="'+esc(v)+'">'+esc(v)+'</option>'}
 function campos(){var c=$("cat").value;$("cOtro").hidden=!/^Otros/.test(c);$("pPer").hidden=c!=="Préstamos";$("perL").textContent=tipo==="e"?"¿A quién le prestaste?":"¿Quién te prestó o te pagó?";$("mOtro").hidden=$("medio").value!=="Otro banco"}
 function llenarFiltros(){var c=$("fc").value,md=$("fm").value,cs=[],ms=MEDIOS.slice();
@@ -205,18 +247,20 @@ $("pdf").onclick=function(){
   var ks=Object.keys(por).sort(function(u,v){return por[v]-por[u]});
   var cats=ks.length?"<h2>Gastos por categoría</h2><table><tbody>"+ks.map(function(k){return "<tr><td>"+esc(k)+"</td><td class='r'>"+Math.round(por[k]/to*100)+"%</td><td class='r e'>"+cop.format(por[k])+"</td></tr>"}).join("")+"</tbody></table>":"";
   var fl=$("fq").value||$("ft").value||$("fc").value||$("fm").value,mes=$("fp").value==="mes",pv=mes?PREV:0,bal=pv+ti-to;
+  var gm=gMes(),pk=Object.keys(PRE).filter(function(k){return PRE[k]>0}),pres="";
+  if(mes&&pk.length)pres="<h2>Presupuesto del mes</h2><table><thead><tr><th>Categoría</th><th class='r'>Presupuesto</th><th class='r'>Gastado</th><th class='r'>Disponible</th></tr></thead><tbody>"+pk.map(function(k){var d=PRE[k]-(gm[k]||0);return "<tr><td>"+esc(k)+"</td><td class='r'>"+cop.format(PRE[k])+"</td><td class='r'>"+cop.format(gm[k]||0)+"</td><td class='r "+(d<0?"e":"i")+"'>"+cop.format(d)+"</td></tr>"}).join("")+"</tbody></table>";
   $("ext").innerHTML="<div class='cab'><h1>Extracto · "+esc($("mesTxt").textContent)+"</h1><div>"+a.length+" movimientos"+(fl?" · con filtros aplicados":"")+"</div></div>"
    +"<div class='res'>"+(mes?"<div><small>Saldo anterior</small><b>"+cop.format(pv)+"</b></div>":"")+"<div><small>Ingresos</small><b class='i'>"+cop.format(ti)+"</b></div><div><small>Gastos</small><b class='e'>"+cop.format(to)+"</b></div><div><small>Saldo final</small><b class='"+(bal<0?"e":"i")+"'>"+cop.format(bal)+"</b></div></div>"
-   +cats+"<h2>Detalle de movimientos</h2><table><thead><tr><th>Fecha</th><th>Categoría</th><th>Medio</th><th>Detalle</th><th class='r'>Ingreso</th><th class='r'>Gasto</th></tr></thead><tbody>"+filas+"</tbody></table>"
+   +cats+pres+"<h2>Detalle de movimientos</h2><table><thead><tr><th>Fecha</th><th>Categoría</th><th>Medio</th><th>Detalle</th><th class='r'>Ingreso</th><th class='r'>Gasto</th></tr></thead><tbody>"+filas+"</tbody></table>"
    +"<div class='pie'>Generado el "+fe(hoy())+" · Mis gastos</div>";
   window.print()};
 ["fq","fp","ft","fc","fm"].forEach(function(i){$(i).oninput=function(){pag=1;pintar()}});
 $("pa").onclick=function(){pag--;pintar();window.scrollTo(0,0)};
 $("ps").onclick=function(){pag++;pintar();window.scrollTo(0,0)};
-$("exp").onclick=function(){var b=new Blob([JSON.stringify(datos)],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="respaldo-gastos-"+hoy()+".json";document.body.appendChild(a);a.click();a.remove()};
+$("exp").onclick=function(){var b=new Blob([JSON.stringify({movs:datos,presu:PRE})],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="respaldo-gastos-"+hoy()+".json";document.body.appendChild(a);a.click();a.remove()};
 $("impb").onclick=function(){$("imp").click()};
-$("imp").onchange=function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var n=JSON.parse(r.result);if(!Array.isArray(n))throw 0;var ids={};datos.forEach(function(x){ids[x.id]=1});var add=n.filter(function(x){return x&&x.id&&x.fecha&&x.monto&&!ids[x.id]});datos=datos.concat(add);guardar();pag=1;pintar();alert("Se importaron "+add.length+" movimientos.")}catch(e){alert("El archivo no es un respaldo válido.")}};r.readAsText(f);this.value=""};
-cargar();opciones();pintar();
+$("imp").onchange=function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var raw=JSON.parse(r.result),n=Array.isArray(raw)?raw:raw.movs;if(!Array.isArray(n))throw 0;if(!Array.isArray(raw)&&raw.presu&&typeof raw.presu==="object"){PRE=raw.presu;gpre()}var ids={};datos.forEach(function(x){ids[x.id]=1});var add=n.filter(function(x){return x&&x.id&&x.fecha&&x.monto&&!ids[x.id]});datos=datos.concat(add);guardar();pag=1;pintar();alert("Se importaron "+add.length+" movimientos.")}catch(e){alert("El archivo no es un respaldo válido.")}};r.readAsText(f);this.value=""};
+cargar();lpre();opciones();pintar();
 </script>
 </body>
 </html>
