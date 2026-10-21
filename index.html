@@ -3,14 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#14463a">
 <title>Mis gastos</title>
-
-<!-- Manifest para habilitar instalación en pantalla de inicio -->
-<link rel="manifest" href='data:application/manifest+json,{"name":"Mis Gastos","short_name":"Gastos","start_url":".","display":"standalone","background_color":"#0f1815","theme_color":"#14463a","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/2845/2845531.png","sizes":"512x512","type":"image/png"}]}'>
-
 <style>
 :root{--bg:#f3f6f4;--card:#fff;--ink:#14231e;--mute:#62736c;--line:#dbe3df;--in:#0f7a4f;--out:#c2410c;--brand:#14463a;--onbrand:#fff;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -27,6 +20,7 @@ h1{font-size:22px;font-weight:800;margin:4px 0 12px}
 .bal{background:var(--brand);color:var(--onbrand);border-radius:20px;padding:18px}
 .bal small{opacity:.8;display:block}
 .bal .n{font-size:34px;font-weight:800;letter-spacing:-.5px}
+.ant{margin-top:6px;font-size:14px;opacity:.9}
 .dos{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
 .dos div{background:rgba(255,255,255,.12);border-radius:14px;padding:10px 12px}
 .dos b{display:block;font-size:18px}
@@ -72,7 +66,7 @@ input,select{width:100%;height:46px;border:1px solid var(--line);border-radius:1
 #ext .cab{background:#14463a;color:#fff;border-radius:10px;padding:16px 18px}
 #ext .cab h1{font-size:22px;margin:0}
 #ext .cab div{opacity:.85;margin-top:2px}
-#ext .res{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+#ext .res{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin:12px 0}
 #ext .res div{border:1px solid #cfd9d4;border-radius:10px;padding:10px 12px}
 #ext .res small{display:block;color:#62736c}
 #ext .res b{font-size:16px}
@@ -94,7 +88,7 @@ input,select{width:100%;height:46px;border:1px solid var(--line);border-radius:1
 <div id="aviso" class="aviso" hidden>Este navegador no permite guardar datos. Lo que registres se perderá al cerrar la página.</div>
 <div class="mes"><button id="ant" aria-label="Mes anterior">‹</button><strong id="mesTxt"></strong><button id="sig" aria-label="Mes siguiente">›</button></div>
 <div class="bal">
-<small>Balance del mes</small><div class="n" id="bal"></div>
+<small>Saldo disponible</small><div class="n" id="bal"></div><div class="ant" id="antw">Saldo del mes anterior: <b id="tprev"></b></div>
 <div class="dos"><div><small>Ingresos</small><b id="tin"></b></div><div><small>Gastos</small><b id="tout"></b></div></div>
 </div>
 <section id="resumen" hidden><h2>En qué se fue la plata</h2><div id="cats"></div></section>
@@ -130,7 +124,7 @@ input,select{width:100%;height:46px;border:1px solid var(--line);border-radius:1
 <script>
 var CATS={e:["Comida","Mercado","Arriendo","Servicios","Transporte","Suscripciones","Ocio","Salud","Ropa","Deudas","Préstamos","Otros"],i:["Nómina","Transferencia recibida","Venta","Préstamos","Otros ingresos"]};
 var MEDIOS=["Efectivo","Bancolombia","Nequi","Transferencia","Tarjeta de crédito","Tarjeta débito","Otro banco"];
-var KEY="mis-gastos-v1",datos=[],ULT=[],pag=1,tipo="e",ver=new Date();ver.setDate(1);
+var KEY="mis-gastos-v1",datos=[],ULT=[],PREV=0,pag=1,tipo="e",ver=new Date();ver.setDate(1);
 function cargar(){try{var r=localStorage.getItem(KEY);datos=r?JSON.parse(r):[]}catch(e){datos=[];document.getElementById("aviso").hidden=false}}
 function guardar(){try{localStorage.setItem(KEY,JSON.stringify(datos))}catch(e){document.getElementById("aviso").hidden=false}}
 var $=function(i){return document.getElementById(i)};
@@ -142,18 +136,19 @@ function pintar(){llenarFiltros();
   $("mesTxt").textContent=ver.toLocaleDateString("es-CO",{month:"long",year:"numeric"});
   var q=$("fq").value.trim().toLowerCase(),ft=$("ft").value,fc=$("fc").value,fm=$("fm").value,fp=$("fp").value;
   if(fp==="todo")$("mesTxt").textContent="Todo el historial";
-  var m=datos.filter(function(x){
-    if(fp==="mes"&&x.fecha.slice(0,7)!==p)return false;
+  var pasa=function(x){
     if(ft&&x.tipo!==ft)return false;if(fc&&x.cat!==fc)return false;if(fm&&x.medio!==fm)return false;
     if(q&&(x.cat+" "+x.medio+" "+x.nota+" "+(x.persona||"")+" "+x.monto).toLowerCase().indexOf(q)<0)return false;
-    return true}).sort(function(a,b){return b.fecha.localeCompare(a.fecha)||b.id-a.id});
+    return true};
+  var m=datos.filter(function(x){return pasa(x)&&(fp!=="mes"||x.fecha.slice(0,7)===p)}).sort(function(a,b){return b.fecha.localeCompare(a.fecha)||b.id-a.id});
+  var prev=0;if(fp==="mes")datos.forEach(function(x){if(pasa(x)&&x.fecha.slice(0,7)<p)prev+=x.tipo==="i"?x.monto:-x.monto});
   var ti=0,to=0,por={};
   m.forEach(function(x){if(x.tipo==="i")ti+=x.monto;else{to+=x.monto;por[x.cat]=(por[x.cat]||0)+x.monto}});
-  $("bal").textContent=cop.format(ti-to);$("tin").textContent=cop.format(ti);$("tout").textContent=cop.format(to);
+  $("bal").textContent=cop.format(prev+ti-to);$("tprev").textContent=cop.format(prev);$("antw").hidden=fp!=="mes";$("tin").textContent=cop.format(ti);$("tout").textContent=cop.format(to);
   var ks=Object.keys(por).sort(function(a,b){return por[b]-por[a]}),mx=ks.length?por[ks[0]]:1;
   $("resumen").hidden=!ks.length;
   $("cats").innerHTML=ks.map(function(k){return '<div class="barra"><span>'+esc(k)+'</span><i style="width:'+Math.max(4,por[k]/mx*100)+'%"></i><span>'+cop.format(por[k])+'</span></div>'}).join("");
-  ULT=m;var pags=Math.max(1,Math.ceil(m.length/15));if(pag>pags)pag=pags;
+  ULT=m;PREV=prev;var pags=Math.max(1,Math.ceil(m.length/15));if(pag>pags)pag=pags;
   var vis=m.slice((pag-1)*15,pag*15);
   $("pager").hidden=pags<2;$("pg").textContent="Página "+pag+" de "+pags+" · "+m.length+" movimientos";
   $("pa").disabled=pag<=1;$("ps").disabled=pag>=pags;
@@ -209,9 +204,9 @@ $("pdf").onclick=function(){
     return "<tr><td>"+fe(x.fecha)+"</td><td>"+esc(x.cat)+"</td><td>"+esc(x.medio)+"</td><td>"+det+"</td><td class='r i'>"+(x.tipo==="i"?cop.format(x.monto):"")+"</td><td class='r e'>"+(x.tipo==="e"?cop.format(x.monto):"")+"</td></tr>"}).join("");
   var ks=Object.keys(por).sort(function(u,v){return por[v]-por[u]});
   var cats=ks.length?"<h2>Gastos por categoría</h2><table><tbody>"+ks.map(function(k){return "<tr><td>"+esc(k)+"</td><td class='r'>"+Math.round(por[k]/to*100)+"%</td><td class='r e'>"+cop.format(por[k])+"</td></tr>"}).join("")+"</tbody></table>":"";
-  var fl=$("fq").value||$("ft").value||$("fc").value||$("fm").value,bal=ti-to;
+  var fl=$("fq").value||$("ft").value||$("fc").value||$("fm").value,mes=$("fp").value==="mes",pv=mes?PREV:0,bal=pv+ti-to;
   $("ext").innerHTML="<div class='cab'><h1>Extracto · "+esc($("mesTxt").textContent)+"</h1><div>"+a.length+" movimientos"+(fl?" · con filtros aplicados":"")+"</div></div>"
-   +"<div class='res'><div><small>Ingresos</small><b class='i'>"+cop.format(ti)+"</b></div><div><small>Gastos</small><b class='e'>"+cop.format(to)+"</b></div><div><small>Balance</small><b class='"+(bal<0?"e":"i")+"'>"+cop.format(bal)+"</b></div></div>"
+   +"<div class='res'>"+(mes?"<div><small>Saldo anterior</small><b>"+cop.format(pv)+"</b></div>":"")+"<div><small>Ingresos</small><b class='i'>"+cop.format(ti)+"</b></div><div><small>Gastos</small><b class='e'>"+cop.format(to)+"</b></div><div><small>Saldo final</small><b class='"+(bal<0?"e":"i")+"'>"+cop.format(bal)+"</b></div></div>"
    +cats+"<h2>Detalle de movimientos</h2><table><thead><tr><th>Fecha</th><th>Categoría</th><th>Medio</th><th>Detalle</th><th class='r'>Ingreso</th><th class='r'>Gasto</th></tr></thead><tbody>"+filas+"</tbody></table>"
    +"<div class='pie'>Generado el "+fe(hoy())+" · Mis gastos</div>";
   window.print()};
