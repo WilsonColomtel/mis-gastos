@@ -79,7 +79,14 @@ input,select{width:100%;height:46px;border:1px solid var(--line);border-radius:1
 #ext tr{break-inside:avoid}
 #ext tbody tr:nth-child(even) td{background:#f5f8f6}
 #ext .r{text-align:right;white-space:nowrap}
-#ext .pie{margin-top:12px;color:#62736c;font-size:10px}}
+#ext .pie{margin-top:12px;color:#62736c;font-size:10px}
+#ext .gm{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;text-align:center}
+#ext .bs{height:110px;display:flex;align-items:flex-end;justify-content:center;gap:3px}
+#ext .bi{background:#0f7a4f}#ext .be{background:#c2410c}
+#ext .mc b{display:block;text-transform:capitalize;margin-top:3px}
+#ext .mc small{display:block;font-size:9px}
+#ext .bar{height:8px;background:#e8efeb;border-radius:4px;overflow:hidden}
+#ext .bar i{display:block;height:100%}}
 details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0 14px}
 summary{cursor:pointer;font-weight:600;padding:14px 0}
 details[open] summary{border-bottom:1px solid var(--line);margin-bottom:12px}
@@ -165,7 +172,7 @@ details>div{padding-bottom:14px}
 <div id="pPer" hidden><label for="per" id="perL">¿A quién?</label><input id="per" placeholder="Nombre de la persona" autocomplete="off"></div>
 <label for="medio">Medio</label><select id="medio"></select>
 <div id="mOtro" hidden><label for="mTxt">¿Cuál banco o medio?</label><input id="mTxt" placeholder="Escribe el nombre" autocomplete="off"></div>
-<div id="tOtro" hidden><label for="tarj">¿Cuál tarjeta?</label><select id="tarj"></select></div>
+<div id="tOtro" hidden><label for="tarj">¿Cuál tarjeta?</label><select id="tarj"></select><label for="cuo">Número de cuotas</label><input id="cuo" inputmode="numeric" value="1" autocomplete="off"><small id="cuoT" class="dd"></small></div>
 <label for="fecha">Fecha</label><input id="fecha" type="date">
 <label for="nota">Nota (opcional)</label><input id="nota" placeholder="Ej: almuerzo con Juan" autocomplete="off">
 <div class="acc"><button type="button" class="c" id="cancel">Cancelar</button><button type="button" class="g" id="guardar">Guardar</button></div>
@@ -218,7 +225,7 @@ function opciones(){
 $("medio").innerHTML=MEDIOS.map(function(c){return "<option>"+c+"</option>"}).join("");
 $("bE").onclick=function(){tipo="e";opciones()};
 $("bI").onclick=function(){tipo="i";opciones()};
-$("nuevo").onclick=function(){tipo="e";opciones();$("monto").value="";$("nota").value="";$("cTxt").value="";$("per").value="";$("mTxt").value="";campos();$("fecha").value=hoy();$("dlg").showModal();$("monto").focus()};
+$("nuevo").onclick=function(){tipo="e";opciones();$("monto").value="";$("nota").value="";$("cTxt").value="";$("per").value="";$("mTxt").value="";$("cuo").value="1";campos();cuoT();$("fecha").value=hoy();$("dlg").showModal();$("monto").focus()};
 $("cancel").onclick=function(){$("dlg").close()};
 $("monto").oninput=function(){var n=this.value.replace(/\D/g,"");this.value=n?Number(n).toLocaleString("es-CO"):""};
 $("guardar").onclick=function(){
@@ -230,12 +237,12 @@ $("guardar").onclick=function(){
   if(med==="Otro banco"&&$("mTxt").value.trim())med=$("mTxt").value.trim();
   var reg={id:Date.now(),tipo:tipo,monto:n,cat:cat,medio:med,fecha:$("fecha").value||hoy(),nota:$("nota").value.trim()};
   if(cat==="Préstamos")reg.persona=per;
-  if(med==="Tarjeta de crédito"&&tipo==="e"){var tj=$("tarj").value;if(!tj){alert("Primero agrega tu tarjeta en «Tarjetas por pagar».");return}reg.tarjeta=tj}
+  if(med==="Tarjeta de crédito"&&tipo==="e"){var tj=$("tarj").value;if(!tj){alert("Primero agrega tu tarjeta en «Tarjetas por pagar».");return}reg.tarjeta=tj;var cu=Math.max(1,Math.min(60,parseInt($("cuo").value,10)||1));if(cu>1)reg.cuotas=cu}
   datos.push(reg);
   guardar();$("dlg").close();
   var f=($("fecha").value||hoy()).split("-");ver=new Date(+f[0],+f[1]-1,1);pag=1;pintar();
 };
-$("lista").onclick=function(e){var b=e.target.closest("button");if(!b)return;if(confirm("¿Borrar este movimiento?")){datos.forEach(function(x){if(String(x.pagoId)===b.dataset.id){x.pagada=false;delete x.pagoId}});datos=datos.filter(function(x){return String(x.id)!==b.dataset.id});guardar();pintar()}};
+$("lista").onclick=function(e){var b=e.target.closest("button");if(!b)return;if(confirm("¿Borrar este movimiento?")){datos.forEach(function(x){if(String(x.pagoId)===b.dataset.id){x.pagada=false;delete x.pagoId}if(x.pids){var j=x.pids.map(String).indexOf(b.dataset.id);if(j>=0){x.pids.splice(j,1);x.pagadas=pg(x)-1}}});datos=datos.filter(function(x){return String(x.id)!==b.dataset.id});guardar();pintar()}};
 $("ant").onclick=function(){ver.setMonth(ver.getMonth()-1);pag=1;pintar()};
 $("sig").onclick=function(){ver.setMonth(ver.getMonth()+1);pag=1;pintar()};
 var PK="mis-gastos-presu",PRE={};
@@ -244,10 +251,13 @@ function gpre(){try{localStorage.setItem(PK,JSON.stringify(PRE))}catch(e){}}
 function mesKey(){return ver.getFullYear()+"-"+String(ver.getMonth()+1).padStart(2,"0")}
 function gMes(){var p=mesKey(),g={};datos.forEach(function(x){if(x.tipo==="e"&&!x.pagoTarjeta&&x.fecha.slice(0,7)===p)g[x.cat]=(g[x.cat]||0)+x.monto});return g}
 function corto(n){return n>=1e6?(n/1e6).toFixed(1).replace(".",",")+"M":n>=1e3?Math.round(n/1e3)+"k":String(n)}
-function grafica(){
+function serie(){
   var ms=[],i,d;
   for(i=5;i>=0;i--){d=new Date(ver.getFullYear(),ver.getMonth()-i,1);ms.push({k:d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"),n:d.toLocaleDateString("es-CO",{month:"short"}).replace(".",""),i:0,e:0})}
   datos.forEach(function(x){var k=x.fecha.slice(0,7);ms.forEach(function(m){if(m.k===k){if(x.tipo==="i")m.i+=x.monto;else if(!x.pagoTarjeta)m.e+=x.monto}})});
+  return ms}
+function grafica(){
+  var ms=serie();
   var mx=Math.max.apply(null,ms.map(function(m){return Math.max(m.i,m.e)}).concat([1])),h=function(v){return v?Math.max(2,v/mx*100):0};
   $("grafM").innerHTML='<div class="leg"><span class="cin">■ Ingresos</span><span class="cout">■ Gastos</span></div><div class="gm">'+ms.map(function(m){return '<div class="mc"><div class="bs"><i class="bi" style="height:'+h(m.i)+'%"></i><i class="be" style="height:'+h(m.e)+'%"></i></div><b>'+m.n+'</b><small class="cin">'+corto(m.i)+'</small><small class="cout">'+corto(m.e)+'</small></div>'}).join("")+'</div>'}
 function presupuesto(){
@@ -264,8 +274,16 @@ function ltar(){try{var r=localStorage.getItem(TK);TARJ=r?JSON.parse(r):[]}catch
 function gtar(){try{localStorage.setItem(TK,JSON.stringify(TARJ))}catch(e){}}
 function efecto(x){return x.tipo==="i"?x.monto:(x.tarjeta?0:-x.monto)}
 function buscar(id){return TARJ.filter(function(t){return t.id===id})[0]}
-function tn(x){var t=x.tarjeta?buscar(String(x.tarjeta)):null;return t?" · "+esc(t.nombre):""}
-function deuda(id){var d=0;datos.forEach(function(x){if(String(x.tarjeta)===id&&!x.pagada)d+=x.monto});return d}
+function tn(x){var t=x.tarjeta?buscar(String(x.tarjeta)):null;return t?" · "+esc(t.nombre)+(nC(x)>1?" · "+pg(x)+"/"+nC(x)+" cuotas":""):""}
+function nC(x){return x.cuotas||1}
+function pg(x){return x.pagadas!==undefined?x.pagadas:(x.pagada?1:0)}
+function vc(x){return Math.round(x.monto/nC(x))}
+function resta(x){return pg(x)>=nC(x)?0:x.monto-vc(x)*pg(x)}
+function aPagar(x){return pg(x)>=nC(x)?0:(pg(x)===nC(x)-1?resta(x):vc(x))}
+function deuda(id){var d=0;datos.forEach(function(x){if(String(x.tarjeta)===id)d+=resta(x)});return d}
+function aMes(id){var d=0;datos.forEach(function(x){if(String(x.tarjeta)===id)d+=aPagar(x)});return d}
+function cuoT(){var n=parseInt($("cuo").value,10)||1,m=parseInt($("monto").value.replace(/\D/g,""),10)||0;$("cuoT").textContent=n>1&&m?n+" cuotas de "+cop.format(Math.round(m/n))+" (sin intereses)":""}
+$("cuo").addEventListener("input",cuoT);$("monto").addEventListener("input",cuoT);
 function prox(dia){var h=new Date(),t=new Date(h.getFullYear(),h.getMonth(),h.getDate()),n=new Date(t.getFullYear(),t.getMonth(),dia);if(n<t)n=new Date(t.getFullYear(),t.getMonth()+1,dia);return n}
 function dias(dia){var h=new Date(),t=new Date(h.getFullYear(),h.getMonth(),h.getDate());return Math.round((prox(dia)-t)/864e5)}
 function txd(n){return n===0?"hoy":"en "+n+(n===1?" día":" días")}
@@ -279,14 +297,14 @@ function ctl(){
   var t=TARJ[ACT],pagos=MEDIOS.filter(function(m){return m!=="Tarjeta de crédito"});
   $("tDots").innerHTML=TARJ.length>1?TARJ.map(function(x,k){return '<i'+(k===ACT?' class="on"':'')+'></i>'}).join(""):"";
   if(!t){$("tCtl").innerHTML="";return}
-  var d=deuda(t.id),i=esc(t.id);
+  var d=aMes(t.id),i=esc(t.id);
   $("tCtl").innerHTML='<div class="pt2"><select data-m="'+i+'" aria-label="Pagar desde">'+pagos.map(op).join("")+'</select><button class="mini2" data-p="'+i+'"'+(d?'':' disabled')+'>Marcar como pagada</button><button class="mini2" data-c="'+i+'">Calendario</button></div><div class="pt2"><select data-b="'+i+'" aria-label="Estilo de la tarjeta">'+selB(t.banco)+'</select>'+(t.banco==="otro"?'<input type="color" data-k="'+i+'" value="'+(/^#[0-9a-f]{6}$/i.test(t.color||"")?t.color:"#14463a")+'" aria-label="Color">':'')+'</div>'}
 function tarjetas(){
   var tot=0,al=[];
   if(ACT>=TARJ.length)ACT=Math.max(0,TARJ.length-1);
-  var h=TARJ.map(function(t){var d=deuda(t.id),n=dias(t.dia),e=est(t),urg=d>0&&n<=3;tot+=d;
-    if(d>0&&n<=5)al.push("Debes pagar "+cop.format(d)+" de "+esc(t.nombre)+" "+txd(n));
-    return '<div class="tj" style="background:linear-gradient(135deg,'+e.a+','+e.b+');color:'+e.f+'"><div class="tr"><span class="nm">'+esc(t.nombre)+'</span><button class="x" data-q="'+esc(t.id)+'" aria-label="Quitar tarjeta">✕</button></div><div class="tr"><span class="chip"></span><span class="num">'+(t.u4?"•••• "+esc(t.u4):"•••• ••••")+'</span></div><div><div class="sub">Debes</div><div class="deb">'+cop.format(d)+'</div><div class="sub">Paga el día '+t.dia+' · '+txd(n)+(urg?' <span class="bd">¡Pronto!</span>':'')+'</div></div></div>'}).join("");
+  var h=TARJ.map(function(t){var d=deuda(t.id),m=aMes(t.id),n=dias(t.dia),e=est(t),urg=m>0&&n<=3;tot+=d;
+    if(m>0&&n<=5)al.push("Debes pagar "+cop.format(m)+" de "+esc(t.nombre)+" "+txd(n));
+    return '<div class="tj" style="background:linear-gradient(135deg,'+e.a+','+e.b+');color:'+e.f+'"><div class="tr"><span class="nm">'+esc(t.nombre)+'</span><button class="x" data-q="'+esc(t.id)+'" aria-label="Quitar tarjeta">✕</button></div><div class="tr"><span class="chip"></span><span class="num">'+(t.u4?"•••• "+esc(t.u4):"•••• ••••")+'</span></div><div><div class="sub">Debes</div><div class="deb">'+cop.format(d)+'</div><div class="sub">'+(d!==m?'Este mes pagas '+cop.format(m)+' · ':'')+'Paga el día '+t.dia+' · '+txd(n)+(urg?' <span class="bd">¡Pronto!</span>':'')+'</div></div></div>'}).join("");
   $("tList").innerHTML=h||'<div class="aviso">Agrega tu tarjeta de crédito para llevar lo que debes y que no se te olvide pagarla.</div>';
   ctl();ir();
   $("alerta").hidden=!al.length;$("alerta").innerHTML=al.join("<br>");
@@ -307,10 +325,12 @@ $("tWrap").onchange=function(e){var t=e.target,x=buscar(t.dataset.b||t.dataset.k
 $("tWrap").onclick=function(e){var b=e.target.closest("button");if(!b)return;var d=b.dataset,t=buscar(d.q||d.p||d.c);if(!t)return;
   if(d.q){if(deuda(t.id)>0){alert("Esta tarjeta tiene deuda. Márcala como pagada antes de quitarla.");return}if(confirm("¿Quitar esta tarjeta?")){TARJ=TARJ.filter(function(x){return x.id!==t.id});gtar();pintar()}}
   if(d.c)ics(t);
-  if(d.p){var dv=deuda(t.id),med=document.querySelector('select[data-m="'+t.id+'"]').value;
-    if(dv&&confirm("¿Registrar el pago de "+cop.format(dv)+" a "+t.nombre+" desde "+med+"?")){var id=Date.now();
+  if(d.p){var dv=aMes(t.id),med=document.querySelector('select[data-m="'+t.id+'"]').value;
+    if(dv&&confirm("¿Registrar el pago de "+cop.format(dv)+" a "+t.nombre+" desde "+med+"? Incluye la cuota del mes de cada compra.")){var id=Date.now();
       datos.push({id:id,tipo:"e",monto:dv,cat:"Pago de tarjeta",medio:med,fecha:hoy(),nota:"Pago "+t.nombre,pagoTarjeta:true});
-      datos.forEach(function(x){if(String(x.tarjeta)===t.id&&!x.pagada){x.pagada=true;x.pagoId=id}});guardar();pintar()}}};
+      datos.forEach(function(x){if(String(x.tarjeta)===t.id&&aPagar(x)>0){x.pagadas=pg(x)+1;(x.pids=x.pids||[]).push(id)}});guardar();pintar()}}};
+function grafPDF(){var ms=serie(),mx=Math.max.apply(null,ms.map(function(m){return Math.max(m.i,m.e)}).concat([1])),h=function(v){return v?Math.max(2,v/mx*100):0};
+  return "<h2>Ingresos y gastos, últimos 6 meses</h2><div class='gm'>"+ms.map(function(m){return "<div class='mc'><div class='bs'><i class='bi' style='height:"+h(m.i)+"%'></i><i class='be' style='height:"+h(m.e)+"%'></i></div><b>"+m.n+"</b><small class='i'>"+corto(m.i)+"</small><small class='e'>"+corto(m.e)+"</small></div>"}).join("")+"</div><div class='pie'><span class='i'>■ Ingresos</span> &nbsp; <span class='e'>■ Gastos</span></div>"}
 function op(v){return '<option value="'+esc(v)+'">'+esc(v)+'</option>'}
 function campos(){var c=$("cat").value;$("cOtro").hidden=!/^Otros/.test(c);$("pPer").hidden=c!=="Préstamos";$("perL").textContent=tipo==="e"?"¿A quién le prestaste?":"¿Quién te prestó o te pagó?";$("mOtro").hidden=$("medio").value!=="Otro banco";
   $("tOtro").hidden=!($("medio").value==="Tarjeta de crédito"&&tipo==="e");
@@ -330,13 +350,13 @@ $("pdf").onclick=function(){
     var det=(x.persona?(x.tipo==="e"?"Préstamo a ":"Préstamo de ")+esc(x.persona):"")+(x.nota?(x.persona?" · ":"")+esc(x.nota):"");
     return "<tr><td>"+fe(x.fecha)+"</td><td>"+esc(x.cat)+"</td><td>"+esc(x.medio)+"</td><td>"+det+"</td><td class='r i'>"+(x.tipo==="i"?cop.format(x.monto):"")+"</td><td class='r e'>"+(x.tipo==="e"?cop.format(x.monto):"")+"</td></tr>"}).join("");
   var ks=Object.keys(por).sort(function(u,v){return por[v]-por[u]});
-  var cats=ks.length?"<h2>Gastos por categoría</h2><table><tbody>"+ks.map(function(k){return "<tr><td>"+esc(k)+"</td><td class='r'>"+Math.round(por[k]/to*100)+"%</td><td class='r e'>"+cop.format(por[k])+"</td></tr>"}).join("")+"</tbody></table>":"";
+  var cats=ks.length?"<h2>Gastos por categoría</h2><table><tbody>"+ks.map(function(k){return "<tr><td>"+esc(k)+"</td><td style='width:38%'><div class='bar'><i style='width:"+Math.round(por[k]/to*100)+"%;background:#c2410c'></i></div></td><td class='r'>"+Math.round(por[k]/to*100)+"%</td><td class='r e'>"+cop.format(por[k])+"</td></tr>"}).join("")+"</tbody></table>":"";
   var fl=$("fq").value||$("ft").value||$("fc").value||$("fm").value,mes=$("fp").value==="mes",pv=mes?PREV:0,bal=pv+ef;
   var gm=gMes(),pk=Object.keys(PRE).filter(function(k){return PRE[k]>0}),pres="";
-  if(mes&&pk.length)pres="<h2>Presupuesto del mes</h2><table><thead><tr><th>Categoría</th><th class='r'>Presupuesto</th><th class='r'>Gastado</th><th class='r'>Disponible</th></tr></thead><tbody>"+pk.map(function(k){var d=PRE[k]-(gm[k]||0);return "<tr><td>"+esc(k)+"</td><td class='r'>"+cop.format(PRE[k])+"</td><td class='r'>"+cop.format(gm[k]||0)+"</td><td class='r "+(d<0?"e":"i")+"'>"+cop.format(d)+"</td></tr>"}).join("")+"</tbody></table>";
+  if(mes&&pk.length)pres="<h2>Presupuesto del mes</h2><table><thead><tr><th>Categoría</th><th class='r'>Presupuesto</th><th class='r'>Gastado</th><th class='r'>Disponible</th><th>Uso</th></tr></thead><tbody>"+pk.map(function(k){var d=PRE[k]-(gm[k]||0);return "<tr><td>"+esc(k)+"</td><td class='r'>"+cop.format(PRE[k])+"</td><td class='r'>"+cop.format(gm[k]||0)+"</td><td class='r "+(d<0?"e":"i")+"'>"+cop.format(d)+"</td><td style='width:20%'><div class='bar'><i style='width:"+Math.min(100,Math.round((gm[k]||0)/PRE[k]*100))+"%;background:"+(d<0?"#c2410c":"#0f7a4f")+"'></i></div></td></tr>"}).join("")+"</tbody></table>";
   $("ext").innerHTML="<div class='cab'><h1>Extracto · "+esc($("mesTxt").textContent)+"</h1><div>"+a.length+" movimientos"+(fl?" · con filtros aplicados":"")+"</div></div>"
    +"<div class='res'>"+(mes?"<div><small>Saldo anterior</small><b>"+cop.format(pv)+"</b></div>":"")+"<div><small>Ingresos</small><b class='i'>"+cop.format(ti)+"</b></div><div><small>Gastos</small><b class='e'>"+cop.format(to)+"</b></div><div><small>Saldo final</small><b class='"+(bal<0?"e":"i")+"'>"+cop.format(bal)+"</b></div></div>"
-   +cats+pres+"<h2>Detalle de movimientos</h2><table><thead><tr><th>Fecha</th><th>Categoría</th><th>Medio</th><th>Detalle</th><th class='r'>Ingreso</th><th class='r'>Gasto</th></tr></thead><tbody>"+filas+"</tbody></table>"
+   +grafPDF()+cats+pres+"<h2>Detalle de movimientos</h2><table><thead><tr><th>Fecha</th><th>Categoría</th><th>Medio</th><th>Detalle</th><th class='r'>Ingreso</th><th class='r'>Gasto</th></tr></thead><tbody>"+filas+"</tbody></table>"
    +"<div class='pie'>Generado el "+fe(hoy())+" · Mis gastos</div>";
   window.print()};
 ["fq","fp","ft","fc","fm"].forEach(function(i){$(i).oninput=function(){pag=1;pintar()}});
