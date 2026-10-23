@@ -393,7 +393,7 @@ function llenarDesde(r){
   setCat(r.cat||(tipo==="i"?"Otros ingresos":"Otros"));campos();
   if(r.medio==="Tarjeta de crédito"&&tipo==="e"&&r.u4){var tj=TARJ.filter(function(x){return x.u4===r.u4})[0];if(tj)$("tarj").value=tj.id}
   cuoT();titulo();$("dlg").showModal()}
-function procesarSMS(t){var r=leerSMS(t);if(!r){alert("No pude encontrar un monto en ese mensaje. Puedes registrarlo con «+ Agregar».");return}llenarDesde(r)}
+function procesarSMS(t){var r=leerSMS(t);if(!r&&/%[0-9a-f]{2}/i.test(t)){try{t=decodeURIComponent(t);r=leerSMS(t)}catch(e){}}if(!r){alert("No pude encontrar un monto en este texto: «"+(t.trim().slice(0,120)||"(vacío)")+"». Puedes registrarlo con «+ Agregar».");return}llenarDesde(r)}
 function ruta(){var h=location.hash;
   if(h==="#agregar"){history.replaceState(null,"",location.pathname+location.search);$("nuevo").click()}
   else if(h.indexOf("#sms=")===0){var t;try{t=decodeURIComponent(h.slice(5).replace(/\+/g," "))}catch(e){t=h.slice(5)}history.replaceState(null,"",location.pathname+location.search);procesarSMS(t)}}
