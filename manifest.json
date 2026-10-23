@@ -1,0 +1,19 @@
+{
+  "name": "Mis gastos",
+  "short_name": "Mis gastos",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f1815",
+  "theme_color": "#14463a",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Nuevo gasto", "short_name": "Nuevo gasto", "url": "./#agregar",
+     "icons": [{"src": "icon-192.png", "sizes": "192x192", "type": "image/png"}]}
+  ]
+}

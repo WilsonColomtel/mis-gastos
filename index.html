@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Mis gastos</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#14463a">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
 :root{--bg:#f3f6f4;--card:#fff;--ink:#14231e;--mute:#62736c;--line:#dbe3df;--in:#0f7a4f;--out:#c2410c;--brand:#14463a;--onbrand:#fff;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -366,6 +370,8 @@ $("exp").onclick=function(){var b=new Blob([JSON.stringify({movs:datos,presu:PRE
 $("impb").onclick=function(){$("imp").click()};
 $("imp").onchange=function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var raw=JSON.parse(r.result),n=Array.isArray(raw)?raw:raw.movs;if(!Array.isArray(n))throw 0;if(!Array.isArray(raw)&&raw.presu&&typeof raw.presu==="object"){PRE=raw.presu;gpre()}if(!Array.isArray(raw)&&Array.isArray(raw.tarj)){TARJ=raw.tarj;gtar()}var ids={};datos.forEach(function(x){ids[x.id]=1});var add=n.filter(function(x){return x&&x.id&&x.fecha&&x.monto&&!ids[x.id]});datos=datos.concat(add);guardar();pag=1;pintar();alert("Se importaron "+add.length+" movimientos.")}catch(e){alert("El archivo no es un respaldo válido.")}};r.readAsText(f);this.value=""};
 cargar();lpre();ltar();opciones();pintar();
+if(location.hash==="#agregar")$("nuevo").click();
+if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0)navigator.serviceWorker.register("sw.js").catch(function(){});
 </script>
 </body>
 </html>
