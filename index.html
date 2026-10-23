@@ -135,6 +135,11 @@ details>div{padding-bottom:14px}
 .dots{display:flex;justify-content:center;gap:6px;margin:2px 0 8px}
 .dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
 .dots i.on{background:var(--ink)}
+.mov{cursor:pointer}
+.fabs{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;gap:8px}
+.fabs .fab{position:static}
+.fab2{height:56px;padding:0 16px;border-radius:28px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:600 15px Figtree,system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.2)}
+textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px;font:inherit;background:var(--bg);color:var(--ink);margin-top:10px}
 </style>
 </head>
 <body>
@@ -166,9 +171,10 @@ details>div{padding-bottom:14px}
 </section>
 <section><h2>Extracto y respaldo</h2><div class="resp"><button id="pdf">Descargar extracto en PDF</button><button id="exp">Exportar respaldo</button><button id="impb">Importar respaldo</button><input id="imp" type="file" accept=".json,application/json" hidden></div></section>
 </main>
-<button class="fab" id="nuevo">+ Agregar</button>
+<div class="fabs"><button class="fab2" id="smsb">Pegar mensaje</button><button class="fab" id="nuevo">+ Agregar</button></div>
 
 <dialog id="dlg">
+<h2 id="dTit" style="margin:0 0 10px;color:var(--ink)">Nuevo movimiento</h2>
 <div class="tipo"><button type="button" id="bE" class="on e">Gasto</button><button type="button" id="bI" class="i">Ingreso</button></div>
 <label for="monto">Monto (COP)</label><input id="monto" inputmode="numeric" placeholder="25.000" autocomplete="off">
 <label for="cat">Categoría</label><select id="cat"></select>
@@ -182,6 +188,7 @@ details>div{padding-bottom:14px}
 <div class="acc"><button type="button" class="c" id="cancel">Cancelar</button><button type="button" class="g" id="guardar">Guardar</button></div>
 </dialog>
 
+<dialog id="dSms"><h2 style="margin:0 0 6px;color:var(--ink)">Mensaje del banco</h2><div class="dd">Pega el mensaje de Bancolombia, Nequi u otro banco y la app llena el formulario.</div><textarea id="smsT" rows="5" placeholder="Pega aquí el mensaje"></textarea><div class="acc"><button type="button" class="c" id="smsC">Cancelar</button><button type="button" class="g" id="smsG">Leer mensaje</button></div></dialog>
 <div id="ext"></div>
 <script>
 var CATS={e:["Comida","Mercado","Arriendo","Servicios","Transporte","Suscripciones","Ocio","Salud","Ropa","Deudas","Préstamos","Otros"],i:["Nómina","Transferencia recibida","Venta","Préstamos","Otros ingresos"]};
@@ -218,7 +225,7 @@ function pintar(){llenarFiltros();grafica();presupuesto();
   var h="",ult="";
   vis.forEach(function(x){
     if(x.fecha!==ult){ult=x.fecha;var d=new Date(x.fecha+"T12:00:00");h+='<div class="dia">'+d.toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long"})+'</div>'}
-    h+='<div class="mov"><div class="t"><b>'+esc(x.cat)+'</b><span>'+esc(x.medio)+tn(x)+(x.persona?" · "+(x.tipo==="e"?"a ":"de ")+esc(x.persona):"")+(x.nota?" · "+esc(x.nota):"")+'</span></div><div class="m '+x.tipo+'">'+(x.tipo==="i"?"+":"−")+cop.format(x.monto)+'</div><button data-id="'+x.id+'" aria-label="Borrar">✕</button></div>'
+    h+='<div class="mov" data-eid="'+x.id+'"><div class="t"><b>'+esc(x.cat)+'</b><span>'+esc(x.medio)+tn(x)+(x.persona?" · "+(x.tipo==="e"?"a ":"de ")+esc(x.persona):"")+(x.nota?" · "+esc(x.nota):"")+'</span></div><div class="m '+x.tipo+'">'+(x.tipo==="i"?"+":"−")+cop.format(x.monto)+'</div><button data-e="1" aria-label="Editar">✎</button><button data-id="'+x.id+'" aria-label="Borrar">✕</button></div>'
   });
   $("lista").innerHTML=h;
 }
@@ -239,14 +246,14 @@ $("guardar").onclick=function(){
   if(cat==="Préstamos"&&!per){$("per").focus();return}
   if(/^Otros/.test(cat)&&$("cTxt").value.trim())cat=$("cTxt").value.trim();
   if(med==="Otro banco"&&$("mTxt").value.trim())med=$("mTxt").value.trim();
-  var reg={id:Date.now(),tipo:tipo,monto:n,cat:cat,medio:med,fecha:$("fecha").value||hoy(),nota:$("nota").value.trim()};
+  var reg={id:EDIT||Date.now(),tipo:tipo,monto:n,cat:cat,medio:med,fecha:$("fecha").value||hoy(),nota:$("nota").value.trim()};
   if(cat==="Préstamos")reg.persona=per;
   if(med==="Tarjeta de crédito"&&tipo==="e"){var tj=$("tarj").value;if(!tj){alert("Primero agrega tu tarjeta en «Tarjetas por pagar».");return}reg.tarjeta=tj;var cu=Math.max(1,Math.min(60,parseInt($("cuo").value,10)||1));if(cu>1)reg.cuotas=cu}
-  datos.push(reg);
+  if(EDIT){var k=-1;datos.forEach(function(y,i){if(y.id===EDIT)k=i});if(k>=0)datos[k]=reg;EDIT=null}else datos.push(reg);
   guardar();$("dlg").close();
   var f=($("fecha").value||hoy()).split("-");ver=new Date(+f[0],+f[1]-1,1);pag=1;pintar();
 };
-$("lista").onclick=function(e){var b=e.target.closest("button");if(!b)return;if(confirm("¿Borrar este movimiento?")){datos.forEach(function(x){if(String(x.pagoId)===b.dataset.id){x.pagada=false;delete x.pagoId}if(x.pids){var j=x.pids.map(String).indexOf(b.dataset.id);if(j>=0){x.pids.splice(j,1);x.pagadas=pg(x)-1}}});datos=datos.filter(function(x){return String(x.id)!==b.dataset.id});guardar();pintar()}};
+$("lista").onclick=function(e){var b=e.target.closest("button"),r=e.target.closest(".mov");if(!b||!b.dataset.id){if(r&&r.dataset.eid)editar(r.dataset.eid);return}if(confirm("¿Borrar este movimiento?")){datos.forEach(function(x){if(String(x.pagoId)===b.dataset.id){x.pagada=false;delete x.pagoId}if(x.pids){var j=x.pids.map(String).indexOf(b.dataset.id);if(j>=0){x.pids.splice(j,1);x.pagadas=pg(x)-1}}});datos=datos.filter(function(x){return String(x.id)!==b.dataset.id});guardar();pintar()}};
 $("ant").onclick=function(){ver.setMonth(ver.getMonth()-1);pag=1;pintar()};
 $("sig").onclick=function(){ver.setMonth(ver.getMonth()+1);pag=1;pintar()};
 var PK="mis-gastos-presu",PRE={};
@@ -335,6 +342,65 @@ $("tWrap").onclick=function(e){var b=e.target.closest("button");if(!b)return;var
       datos.forEach(function(x){if(String(x.tarjeta)===t.id&&aPagar(x)>0){x.pagadas=pg(x)+1;(x.pids=x.pids||[]).push(id)}});guardar();pintar()}}};
 function grafPDF(){var ms=serie(),mx=Math.max.apply(null,ms.map(function(m){return Math.max(m.i,m.e)}).concat([1])),h=function(v){return v?Math.max(2,v/mx*100):0};
   return "<h2>Ingresos y gastos, últimos 6 meses</h2><div class='gm'>"+ms.map(function(m){return "<div class='mc'><div class='bs'><i class='bi' style='height:"+h(m.i)+"%'></i><i class='be' style='height:"+h(m.e)+"%'></i></div><b>"+m.n+"</b><small class='i'>"+corto(m.i)+"</small><small class='e'>"+corto(m.e)+"</small></div>"}).join("")+"</div><div class='pie'><span class='i'>■ Ingresos</span> &nbsp; <span class='e'>■ Gastos</span></div>"}
+var EDIT=null;
+function titulo(){$("dTit").textContent=EDIT?"Editar movimiento":"Nuevo movimiento";$("guardar").textContent=EDIT?"Guardar cambios":"Guardar"}
+function editar(id){
+  var x=datos.filter(function(y){return String(y.id)===id})[0];if(!x)return;
+  if(x.pagoTarjeta){alert("Los pagos de tarjeta no se editan. Bórralo (✕) y vuelve a registrar el pago.");return}
+  if(x.tarjeta&&pg(x)>0){alert("Esta compra ya tiene cuotas pagadas. Para cambiar el monto, borra primero el pago de tarjeta que la incluye, edita la compra y vuelve a registrar el pago.");return}
+  EDIT=x.id;tipo=x.tipo;opciones();
+  $("monto").value=Number(x.monto).toLocaleString("es-CO");
+  var otros=CATS[tipo].filter(function(k){return /^Otros/.test(k)})[0];
+  if(CATS[tipo].indexOf(x.cat)<0){$("cat").value=otros;$("cTxt").value=x.cat}else{$("cat").value=x.cat;$("cTxt").value=""}
+  if(MEDIOS.indexOf(x.medio)<0){$("medio").value="Otro banco";$("mTxt").value=x.medio}else{$("medio").value=x.medio;$("mTxt").value=""}
+  $("per").value=x.persona||"";$("nota").value=x.nota||"";$("fecha").value=x.fecha;$("cuo").value=x.cuotas||1;
+  campos();if(x.tarjeta)$("tarj").value=String(x.tarjeta);cuoT();titulo();$("dlg").showModal()}
+$("dlg").addEventListener("close",function(){EDIT=null;titulo()});
+$("nuevo").addEventListener("click",function(){EDIT=null;titulo()});
+function num(t){t=String(t).replace(/^[^\d]+|[^\d]+$/g,"");var c=t.lastIndexOf(","),d=t.lastIndexOf("."),v;
+  if(c>-1&&d>-1)v=c>d?t.replace(/\./g,"").replace(",","."):t.replace(/,/g,"");
+  else if(c>-1)v=/^\d{1,3}(,\d{3})+$/.test(t)?t.replace(/,/g,""):t.replace(",",".");
+  else if(d>-1)v=/^\d{1,3}(\.\d{3})+$/.test(t)?t.replace(/\./g,""):t;
+  else v=t;
+  return Math.round(parseFloat(v))||0}
+var KW=[["Mercado",/exito|éxito|\bara\b|\bd1\b|olimpica|olímpica|jumbo|carulla|alkosto|\bmetro\b|surtimax|justo|supermercado/i],["Comida",/restaurante|rappi|domicilio|mcdonald|kfc|subway|pizza|caf[eé]|panader|juan valdez|starbucks|burger|frisby|crepes|helad/i],["Gasolina",/terpel|primax|esso|biomax|texaco|gasolina|estaci[oó]n de servicio/i],["Transporte",/uber|didi|cabify|indrive|peaje|transmilenio|taxi|sitp/i],["Suscripciones",/netflix|spotify|disney|hbo|prime video|youtube|apple|google|paramount/i],["Salud",/droguer|farmacia|cruz verde|farmatodo|locatel|cl[ií]nica|laboratorio|\beps\b/i],["Ropa",/zara|h&m|arturo calle|studio f|koaj|calzado/i],["Ocio",/\bcine\b|cinemark|procinal|teatro|steam|playstation|xbox/i],["Servicios",/\bepm\b|enel|codensa|acueducto|claro|movistar|tigo|\betb\b|vanti|efigas/i]];
+function catsOk(tipo){var l=tipo==="i"?CATS.i.slice():CATS.e.slice();datos.forEach(function(x){if(x.tipo===tipo&&l.indexOf(x.cat)<0)l.push(x.cat)});return l}
+function adivina(nota,tipo){
+  if(!nota)return "";var n=nota.toLowerCase(),h=datos.slice().sort(function(a,b){return b.id-a.id}).filter(function(x){return x.tipo===tipo&&x.nota&&x.nota.toLowerCase()===n&&!x.pagoTarjeta})[0];
+  if(h)return h.cat;
+  var ok=catsOk(tipo);for(var i=0;i<KW.length;i++){if(KW[i][1].test(nota)&&ok.indexOf(KW[i][0])>=0)return KW[i][0]}
+  return ""}
+function leerSMS(t){
+  var r={tipo:"e",medio:"",nota:"",fecha:hoy(),cat:""};
+  var m=t.match(/(?:\$|COP)\s*(\d[\d.,]*)/i)||t.match(/(?:Pagaste|Recibiste|Compraste|Transferiste|Enviaste)\s+(\d[\d.,]*)/i);
+  if(!m)return null;r.monto=num(m[1]);if(!r.monto)return null;
+  if(/recibiste|te transfirieron|te consignaron|abono/i.test(t))r.tipo="i";
+  if(/^\s*nequi/i.test(t))r.medio="Nequi";else if(/bancolombia/i.test(t))r.medio="Bancolombia";
+  if(/T\.?\s*Cred|tarjeta de cr[eé]dito/i.test(t)){r.medio="Tarjeta de crédito";var u=t.match(/T\.?\s*Cred\s*[*x]*\s*(\d{4})\b/i);if(u)r.u4=u[1]}
+  else if(/transferiste|transferencia/i.test(t)&&r.medio!=="Nequi")r.medio="Transferencia";
+  var c=t.match(/\ben\s+(.+?)(?:\s+con\s+tu\b|\s+el\s+\d|[.,\n]|$)/i);
+  if(c&&c[1].trim())r.nota=c[1].trim();else if(/\bQR\b/i.test(t))r.nota="Pago QR";else if(/transfer/i.test(t))r.nota="Transferencia";
+  var f=t.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if(f){var y=+f[3],mo=+f[2],d=+f[1];if(y<100)y+=2000;if(mo>=1&&mo<=12&&d>=1&&d<=31)r.fecha=y+"-"+String(mo).padStart(2,"0")+"-"+String(d).padStart(2,"0")}
+  r.cat=adivina(r.nota,r.tipo);
+  return r}
+function setCat(c){var o=CATS[tipo].filter(function(k){return /^Otros/.test(k)})[0];if(CATS[tipo].indexOf(c)>=0){$("cat").value=c;$("cTxt").value=""}else{$("cat").value=o;$("cTxt").value=c}}
+function llenarDesde(r){
+  if($("dlg").open)$("dlg").close();
+  EDIT=null;tipo=r.tipo;opciones();
+  $("monto").value=r.monto.toLocaleString("es-CO");$("nota").value=r.nota||"";$("fecha").value=r.fecha;$("per").value="";$("cTxt").value="";$("mTxt").value="";$("cuo").value="1";
+  if(r.medio)$("medio").value=r.medio;
+  setCat(r.cat||(tipo==="i"?"Otros ingresos":"Otros"));campos();
+  if(r.medio==="Tarjeta de crédito"&&tipo==="e"&&r.u4){var tj=TARJ.filter(function(x){return x.u4===r.u4})[0];if(tj)$("tarj").value=tj.id}
+  cuoT();titulo();$("dlg").showModal()}
+function procesarSMS(t){var r=leerSMS(t);if(!r){alert("No pude encontrar un monto en ese mensaje. Puedes registrarlo con «+ Agregar».");return}llenarDesde(r)}
+function ruta(){var h=location.hash;
+  if(h==="#agregar"){history.replaceState(null,"",location.pathname+location.search);$("nuevo").click()}
+  else if(h.indexOf("#sms=")===0){var t;try{t=decodeURIComponent(h.slice(5).replace(/\+/g," "))}catch(e){t=h.slice(5)}history.replaceState(null,"",location.pathname+location.search);procesarSMS(t)}}
+$("smsb").onclick=function(){$("smsT").value="";$("dSms").showModal();
+  if(navigator.clipboard&&navigator.clipboard.readText)navigator.clipboard.readText().then(function(t){if(/bancolombia|nequi|compraste|pagaste|transferiste|recibiste/i.test(t)&&!$("smsT").value)$("smsT").value=t}).catch(function(){})};
+$("smsC").onclick=function(){$("dSms").close()};
+$("smsG").onclick=function(){var t=$("smsT").value;$("dSms").close();if(t.trim())procesarSMS(t)};
 function op(v){return '<option value="'+esc(v)+'">'+esc(v)+'</option>'}
 function campos(){var c=$("cat").value;$("cOtro").hidden=!/^Otros/.test(c);$("pPer").hidden=c!=="Préstamos";$("perL").textContent=tipo==="e"?"¿A quién le prestaste?":"¿Quién te prestó o te pagó?";$("mOtro").hidden=$("medio").value!=="Otro banco";
   $("tOtro").hidden=!($("medio").value==="Tarjeta de crédito"&&tipo==="e");
@@ -370,7 +436,7 @@ $("exp").onclick=function(){var b=new Blob([JSON.stringify({movs:datos,presu:PRE
 $("impb").onclick=function(){$("imp").click()};
 $("imp").onchange=function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var raw=JSON.parse(r.result),n=Array.isArray(raw)?raw:raw.movs;if(!Array.isArray(n))throw 0;if(!Array.isArray(raw)&&raw.presu&&typeof raw.presu==="object"){PRE=raw.presu;gpre()}if(!Array.isArray(raw)&&Array.isArray(raw.tarj)){TARJ=raw.tarj;gtar()}var ids={};datos.forEach(function(x){ids[x.id]=1});var add=n.filter(function(x){return x&&x.id&&x.fecha&&x.monto&&!ids[x.id]});datos=datos.concat(add);guardar();pag=1;pintar();alert("Se importaron "+add.length+" movimientos.")}catch(e){alert("El archivo no es un respaldo válido.")}};r.readAsText(f);this.value=""};
 cargar();lpre();ltar();opciones();pintar();
-if(location.hash==="#agregar")$("nuevo").click();
+window.addEventListener("hashchange",ruta);ruta();
 if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0)navigator.serviceWorker.register("sw.js").catch(function(){});
 </script>
 </body>
