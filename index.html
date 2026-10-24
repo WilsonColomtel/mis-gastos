@@ -168,6 +168,13 @@ body.bus main>*:not(h1):not(.bz):not(.mes):not(#alerta){display:none}
 .bal{position:relative}
 .ojo{position:absolute;top:10px;right:10px;width:40px;height:40px;border:0;border-radius:50%;background:rgba(255,255,255,.15);color:inherit;display:grid;place-items:center}
 .ojo svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.seg{display:flex;gap:8px;margin-bottom:10px}
+.seg button{flex:1;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:600 14px Figtree,system-ui,sans-serif}
+.seg button.on{background:var(--brand);color:var(--onbrand);border-color:var(--brand)}
+.gy{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.gy[hidden]{display:none}
+.gy button{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:18px}
+.mc{cursor:pointer}
 </style>
 </head>
 <body>
@@ -194,7 +201,7 @@ body.bus main>*:not(h1):not(.bz):not(.mes):not(#alerta){display:none}
 <section class="fz"><details id="dT"><summary>Tarjetas por pagar</summary><div><div id="tWrap"><div id="tList" class="carr"></div><div id="tDots" class="dots"></div><div id="tCtl"></div></div>
 <div class="pt2"><select id="tBanco" aria-label="Estilo de tarjeta"></select><input id="tColor" type="color" value="#14463a" hidden aria-label="Color de la tarjeta"></div>
 <div class="pt2"><input id="tNom" placeholder="Nombre (opcional)" autocomplete="off"><input id="tDia" inputmode="numeric" placeholder="Día de pago (1 a 28)" autocomplete="off"><input id="tU4" inputmode="numeric" maxlength="4" placeholder="Últimos 4 dígitos (opcional)" autocomplete="off"><button id="tAdd" class="mini2">Agregar tarjeta</button></div></div></details></section>
-<section class="fz"><details id="dG"><summary>Gráfico mes a mes</summary><div id="grafM"></div></details></section>
+<section class="fz"><details id="dG"><summary>Gráficos</summary><div><div class="seg"><button id="gMes" class="on">Por mes</button><button id="gAnio">Por año</button></div><div class="gy" id="gNavY" hidden><button id="gYa" aria-label="Año anterior">‹</button><b id="gYt"></b><button id="gYs" aria-label="Año siguiente">›</button></div><div id="grafM"></div><div id="grafDet" class="dd" style="margin-top:8px"></div></div></details></section>
 <section class="fz"><details id="dP"><summary>Presupuesto mensual</summary><div id="presu"></div></details></section>
 <section class="bz"><h2>Movimientos</h2>
 <div class="filtros">
@@ -300,8 +307,8 @@ $("guardar").onclick=function(){
   var f=($("fecha").value||hoy()).split("-");ver=new Date(+f[0],+f[1]-1,1);pag=1;pintar();
 };
 $("lista").onclick=function(e){var b=e.target.closest("button"),r=e.target.closest(".mov");if(!b||!b.dataset.id){if(r&&r.dataset.eid)editar(r.dataset.eid);return}if(confirm("¿Borrar este movimiento?")){datos.forEach(function(x){if(String(x.pagoId)===b.dataset.id){x.pagada=false;delete x.pagoId}if(x.pids){var j=x.pids.map(String).indexOf(b.dataset.id);if(j>=0){x.pids.splice(j,1);x.pagadas=pg(x)-1}}});datos=datos.filter(function(x){return String(x.id)!==b.dataset.id});guardar();pintar()}};
-$("ant").onclick=function(){ver.setMonth(ver.getMonth()-1);pag=1;pintar()};
-$("sig").onclick=function(){ver.setMonth(ver.getMonth()+1);pag=1;pintar()};
+$("ant").onclick=function(){ver.setMonth(ver.getMonth()-1);pag=1;GY=null;pintar()};
+$("sig").onclick=function(){ver.setMonth(ver.getMonth()+1);pag=1;GY=null;pintar()};
 var PK="mis-gastos-presu",PRE={};
 function lpre(){try{var r=localStorage.getItem(PK);PRE=r?JSON.parse(r):{}}catch(e){PRE={}}}
 function gpre(){try{localStorage.setItem(PK,JSON.stringify(PRE))}catch(e){}}
@@ -313,10 +320,28 @@ function serie(){
   for(i=5;i>=0;i--){d=new Date(ver.getFullYear(),ver.getMonth()-i,1);ms.push({k:d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"),n:d.toLocaleDateString("es-CO",{month:"short"}).replace(".",""),i:0,e:0})}
   datos.forEach(function(x){var k=x.fecha.slice(0,7);ms.forEach(function(m){if(m.k===k){if(x.tipo==="i")m.i+=x.monto;else if(!x.pagoTarjeta)m.e+=x.monto}})});
   return ms}
+var GM="mes",GY=null,MN=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+function gy(){return GY===null?ver.getFullYear():GY}
+function capi(t){return t.charAt(0).toUpperCase()+t.slice(1)}
 function grafica(){
-  var ms=serie();
-  var mx=Math.max.apply(null,ms.map(function(m){return Math.max(m.i,m.e)}).concat([1])),h=function(v){return v?Math.max(2,v/mx*100):0};
-  $("grafM").innerHTML='<div class="leg"><span class="cin">■ Ingresos</span><span class="cout">■ Gastos</span></div><div class="gm">'+ms.map(function(m){return '<div class="mc"><div class="bs"><i class="bi" style="height:'+h(m.i)+'%"></i><i class="be" style="height:'+h(m.e)+'%"></i></div><b>'+m.n+'</b><small class="cin">'+corto(m.i)+'</small><small class="cout">'+corto(m.e)+'</small></div>'}).join("")+'</div>'}
+  var cols=[],i,ti=0,te=0,mayor=null,anio=GM!=="mes",suma=function(c,x){if(c){if(x.tipo==="i")c.i+=x.monto;else if(!x.pagoTarjeta)c.e+=x.monto}};
+  if(!anio){var nd=new Date(ver.getFullYear(),ver.getMonth()+1,0).getDate(),p=mesKey();
+    for(i=1;i<=nd;i++)cols.push({n:(i===1||i%5===0)?String(i):"",i:0,e:0,t:"Día "+i});
+    datos.forEach(function(x){if(x.fecha.slice(0,7)===p)suma(cols[+x.fecha.slice(8,10)-1],x)})}
+  else{var Y=String(gy());
+    for(i=0;i<12;i++)cols.push({n:MN[i].slice(0,3),i:0,e:0,t:capi(MN[i])+" "+Y});
+    datos.forEach(function(x){if(x.fecha.slice(0,4)===Y)suma(cols[+x.fecha.slice(5,7)-1],x)})}
+  cols.forEach(function(c){ti+=c.i;te+=c.e;if(c.e>0&&(!mayor||c.e>mayor.e))mayor=c});
+  var mx=Math.max.apply(null,cols.map(function(c){return Math.max(c.i,c.e)}).concat([1])),h=function(v){return v?Math.max(2,v/mx*100):0};
+  $("gMes").className=anio?"":"on";$("gAnio").className=anio?"on":"";$("gNavY").hidden=!anio;$("gYt").textContent=gy();
+  $("grafM").innerHTML='<div class="leg"><span class="cin">■ Ingresos</span><span class="cout">■ Gastos</span></div><div class="gm" style="grid-template-columns:repeat('+cols.length+',1fr);gap:'+(anio?4:2)+'px">'+cols.map(function(c){return '<div class="mc" data-d="'+esc(c.t+" · Ingresos "+cop.format(c.i)+" · Gastos "+cop.format(c.e))+'"><div class="bs"><i class="bi" style="height:'+h(c.i)+'%"></i><i class="be" style="height:'+h(c.e)+'%"></i></div><b>'+(c.n||"&nbsp;")+'</b>'+(anio?'<small class="cin">'+corto(c.i)+'</small><small class="cout">'+corto(c.e)+'</small>':'')+'</div>'}).join("")+'</div>';
+  $("grafDet").innerHTML=(anio?"Año "+gy()+": ingresos "+cop.format(ti)+", gastos "+cop.format(te)+(mayor?". Mes de más gasto: "+mayor.t.split(" ")[0].toLowerCase()+" ("+cop.format(mayor.e)+")":"")
+    :"Mes: ingresos "+cop.format(ti)+", gastos "+cop.format(te)+(mayor?". Día de más gasto: "+mayor.t.toLowerCase()+" ("+cop.format(mayor.e)+"). Promedio diario: "+cop.format(Math.round(te/cols.length)):""))+".<br>Toca una barra para ver su detalle."}
+$("gMes").onclick=function(){GM="mes";grafica()};
+$("gAnio").onclick=function(){GM="anio";grafica()};
+$("gYa").onclick=function(){GY=gy()-1;grafica()};
+$("gYs").onclick=function(){GY=gy()+1;grafica()};
+$("grafM").onclick=function(e){var c=e.target.closest(".mc");if(c)$("grafDet").textContent=c.dataset.d};
 function presupuesto(){
   var g=gMes(),cs=CATS.e.slice(),tp=0,tg=0;
   Object.keys(g).concat(Object.keys(PRE)).forEach(function(k){if(cs.indexOf(k)<0)cs.push(k)});
