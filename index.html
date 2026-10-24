@@ -6,6 +6,7 @@
 <title>Mis gastos</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#14463a">
+<script>try{var sg=JSON.parse(localStorage.getItem("mis-gastos-seg")||"{}");if(sg.on)document.documentElement.setAttribute("data-lock","1")}catch(e){}</script>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
@@ -140,11 +141,32 @@ details>div{padding-bottom:14px}
 .fabs .fab{position:static}
 .fab2{height:56px;padding:0 16px;border-radius:28px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:600 15px Figtree,system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.2)}
 textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px;font:inherit;background:var(--bg);color:var(--ink);margin-top:10px}
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tabs button{flex:1;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:600 15px Figtree,system-ui,sans-serif}
+.tabs button.on{background:var(--brand);color:var(--onbrand);border-color:var(--brand)}
+body.aj main>*:not(h1):not(.tabs):not(#vAjus){display:none}
+body:not(.aj) #vAjus{display:none}
+body.aj .fabs{display:none}
+.card2{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0;color:var(--ink);font-size:16px}
+.sw input{width:24px;height:24px;flex:none}
+html[data-lock="1"] main,html[data-lock="1"] .fabs{visibility:hidden}
+#bloq{position:fixed;inset:0;z-index:1000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center}
+#bloq[hidden]{display:none}
+#bloq input{max-width:220px;text-align:center;font-size:22px;letter-spacing:6px}
 </style>
 </head>
 <body>
 <main>
 <h1>Mis gastos</h1>
+<div class="tabs"><button id="tInicio" class="on">Inicio</button><button id="tAjus">Ajustes</button></div>
+<div id="vAjus"><section><h2>Seguridad</h2><div class="card2">
+<label class="sw"><span>Pedir autenticación al abrir la app</span><input type="checkbox" id="segOn"></label>
+<div id="segOpc" hidden>
+<label for="segMet">Método</label><select id="segMet"><option value="bio">Huella o bloqueo del celular</option><option value="pin">PIN de la app (4 a 6 dígitos)</option></select>
+<div id="pinW" hidden><label for="pin1">Nuevo PIN</label><input id="pin1" type="password" inputmode="numeric" maxlength="6" autocomplete="off"><label for="pin2">Repite el PIN</label><input id="pin2" type="password" inputmode="numeric" maxlength="6" autocomplete="off"><div class="pt2"><button id="pinG" class="mini2">Guardar PIN</button></div></div>
+</div><div id="segMsg" class="dd" style="margin-top:8px"></div></div>
+<div class="aviso" style="margin-top:12px">Este bloqueo protege la pantalla de la app. Los datos siguen guardados en el navegador sin cifrar y el archivo de respaldo tampoco lleva clave. Si olvidas el PIN, solo se recupera borrando los datos del sitio en Chrome, y se pierden los movimientos que no tengan respaldo.</div></section></div>
 <div id="aviso" class="aviso" hidden>Este navegador no permite guardar datos. Lo que registres se perderá al cerrar la página.</div>
 <div id="alerta" class="aviso alr" hidden></div>
 <div class="mes"><button id="ant" aria-label="Mes anterior">‹</button><strong id="mesTxt"></strong><button id="sig" aria-label="Mes siguiente">›</button></div>
@@ -189,6 +211,7 @@ textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px
 </dialog>
 
 <dialog id="dSms"><h2 style="margin:0 0 6px;color:var(--ink)">Mensaje del banco</h2><div class="dd">Pega el mensaje de Bancolombia, Nequi u otro banco y la app llena el formulario.</div><textarea id="smsT" rows="5" placeholder="Pega aquí el mensaje"></textarea><div class="acc"><button type="button" class="c" id="smsC">Cancelar</button><button type="button" class="g" id="smsG">Leer mensaje</button></div></dialog>
+<div id="bloq" hidden><h1>Mis gastos</h1><div id="bMsg" class="dd"></div><div id="bPin" hidden><input id="bPinI" type="password" inputmode="numeric" maxlength="6" placeholder="PIN" autocomplete="off"></div><button id="bBtn" class="mini2" style="min-width:200px"></button><div id="bErr" class="dd cout"></div></div>
 <div id="ext"></div>
 <script>
 var CATS={e:["Comida","Mercado","Arriendo","Servicios","Transporte","Suscripciones","Ocio","Salud","Ropa","Deudas","Préstamos","Otros"],i:["Nómina","Transferencia recibida","Venta","Préstamos","Otros ingresos"]};
@@ -394,13 +417,51 @@ function llenarDesde(r){
   if(r.medio==="Tarjeta de crédito"&&tipo==="e"&&r.u4){var tj=TARJ.filter(function(x){return x.u4===r.u4})[0];if(tj)$("tarj").value=tj.id}
   cuoT();titulo();$("dlg").showModal()}
 function procesarSMS(t){var r=leerSMS(t);if(!r&&/%[0-9a-f]{2}/i.test(t)){try{t=decodeURIComponent(t);r=leerSMS(t)}catch(e){}}if(!r){alert("No pude encontrar un monto en este texto: «"+(t.trim().slice(0,120)||"(vacío)")+"». Puedes registrarlo con «+ Agregar».");return}llenarDesde(r)}
-function ruta(){var h=location.hash;
+function ruta(){if(document.documentElement.dataset.lock)return;var h=location.hash;
   if(h==="#agregar"){history.replaceState(null,"",location.pathname+location.search);$("nuevo").click()}
   else if(h.indexOf("#sms=")===0){var t;try{t=decodeURIComponent(h.slice(5).replace(/\+/g," "))}catch(e){t=h.slice(5)}history.replaceState(null,"",location.pathname+location.search);procesarSMS(t)}}
 $("smsb").onclick=function(){$("smsT").value="";$("dSms").showModal();
   if(navigator.clipboard&&navigator.clipboard.readText)navigator.clipboard.readText().then(function(t){if(/bancolombia|nequi|compraste|pagaste|transferiste|recibiste/i.test(t)&&!$("smsT").value)$("smsT").value=t}).catch(function(){})};
 $("smsC").onclick=function(){$("dSms").close()};
 $("smsG").onclick=function(){var t=$("smsT").value;$("dSms").close();if(t.trim())procesarSMS(t)};
+var SEG={on:false,met:"bio"},fuera=0;
+function lseg(){try{var r=localStorage.getItem("mis-gastos-seg");SEG=r?JSON.parse(r):{on:false,met:"bio"}}catch(e){}}
+function gseg(){try{localStorage.setItem("mis-gastos-seg",JSON.stringify(SEG))}catch(e){}}
+function b64(b){return btoa(String.fromCharCode.apply(null,new Uint8Array(b)))}
+function deb64(t){return Uint8Array.from(atob(t),function(c){return c.charCodeAt(0)})}
+function hashPin(pin,salt){return crypto.subtle.importKey("raw",new TextEncoder().encode(pin),"PBKDF2",false,["deriveBits"]).then(function(k){return crypto.subtle.deriveBits({name:"PBKDF2",salt:salt,iterations:100000,hash:"SHA-256"},k,256)}).then(b64)}
+function regBio(){
+  if(!window.PublicKeyCredential||!navigator.credentials)return Promise.reject(new Error("no"));
+  return navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:"Mis gastos"},user:{id:crypto.getRandomValues(new Uint8Array(16)),name:"mis-gastos",displayName:"Mis gastos"},pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],authenticatorSelection:{authenticatorAttachment:"platform",userVerification:"required"},timeout:60000}}).then(function(c){SEG.cred=b64(c.rawId)})}
+function verBio(){return navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:"public-key",id:deb64(SEG.cred),transports:["internal"]}],userVerification:"required",timeout:60000}})}
+function segM(t){$("segMsg").textContent=t}
+function segUI(){$("segOn").checked=!!SEG.on;$("segOpc").hidden=!SEG.on;$("segMet").value=SEG.met||"bio";$("pinW").hidden=$("segMet").value!=="pin";segM(SEG.on?"Activada: "+(SEG.met==="pin"?"PIN de la app.":"huella o bloqueo del celular."):"")}
+function iniciarSeg(){
+  var met=$("segMet").value;SEG.met=met;$("pinW").hidden=met!=="pin";
+  if(met==="bio"){segM("Confirma con tu huella o el bloqueo del celular…");
+    regBio().then(function(){SEG.on=true;gseg();segUI()}).catch(function(){SEG.on=false;gseg();$("segOn").checked=false;$("segOpc").hidden=true;segM("No se pudo activar: el celular o el navegador no permitió la huella. Prueba con PIN.")})}
+  else{SEG.on=false;segM("Escribe y guarda un PIN para activar la autenticación.")}}
+$("segOn").onchange=function(){if(this.checked){$("segOpc").hidden=false;iniciarSeg()}else{SEG.on=false;gseg();$("segOpc").hidden=true;segM("Autenticación desactivada.")}};
+$("segMet").onchange=function(){iniciarSeg()};
+$("pinG").onclick=function(){var a=$("pin1").value,b=$("pin2").value;
+  if(!/^\d{4,6}$/.test(a)){segM("El PIN debe tener de 4 a 6 números.");return}
+  if(a!==b){segM("Los dos PIN no coinciden.");return}
+  var salt=crypto.getRandomValues(new Uint8Array(16));
+  hashPin(a,salt).then(function(h){SEG.met="pin";SEG.salt=b64(salt);SEG.hash=h;SEG.on=true;gseg();$("pin1").value="";$("pin2").value="";segUI()}).catch(function(){segM("No se pudo guardar el PIN en este navegador.")})};
+function abrir(){document.documentElement.removeAttribute("data-lock");$("bloq").hidden=true;ruta()}
+function probar(){
+  if(SEG.met==="pin"){hashPin($("bPinI").value,deb64(SEG.salt)).then(function(h){if(h===SEG.hash)abrir();else{$("bErr").textContent="PIN incorrecto";$("bPinI").value=""}}).catch(function(){$("bErr").textContent="No se pudo verificar el PIN."})}
+  else verBio().then(abrir).catch(function(){$("bErr").textContent="No se pudo verificar. Toca el botón para intentar otra vez."})}
+function bloquear(){
+  document.querySelectorAll("dialog[open]").forEach(function(d){d.close()});
+  var pin=SEG.met==="pin";document.documentElement.setAttribute("data-lock","1");$("bloq").hidden=false;$("bErr").textContent="";
+  $("bPin").hidden=!pin;$("bBtn").textContent=pin?"Entrar":"Desbloquear";$("bMsg").textContent=pin?"Escribe tu PIN":"Usa tu huella o el bloqueo del celular";
+  if(pin)$("bPinI").value="";else probar()}
+$("bBtn").onclick=probar;
+$("bPinI").addEventListener("keydown",function(e){if(e.key==="Enter")probar()});
+document.addEventListener("visibilitychange",function(){if(!SEG.on)return;if(document.hidden)fuera=Date.now();else if(fuera&&Date.now()-fuera>60000&&$("bloq").hidden)bloquear()});
+$("tAjus").onclick=function(){document.body.classList.add("aj");$("tAjus").className="on";$("tInicio").className="";window.scrollTo(0,0)};
+$("tInicio").onclick=function(){document.body.classList.remove("aj");$("tInicio").className="on";$("tAjus").className="";window.scrollTo(0,0)};
 function op(v){return '<option value="'+esc(v)+'">'+esc(v)+'</option>'}
 function campos(){var c=$("cat").value;$("cOtro").hidden=!/^Otros/.test(c);$("pPer").hidden=c!=="Préstamos";$("perL").textContent=tipo==="e"?"¿A quién le prestaste?":"¿Quién te prestó o te pagó?";$("mOtro").hidden=$("medio").value!=="Otro banco";
   $("tOtro").hidden=!($("medio").value==="Tarjeta de crédito"&&tipo==="e");
@@ -436,7 +497,7 @@ $("exp").onclick=function(){var b=new Blob([JSON.stringify({movs:datos,presu:PRE
 $("impb").onclick=function(){$("imp").click()};
 $("imp").onchange=function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var raw=JSON.parse(r.result),n=Array.isArray(raw)?raw:raw.movs;if(!Array.isArray(n))throw 0;if(!Array.isArray(raw)&&raw.presu&&typeof raw.presu==="object"){PRE=raw.presu;gpre()}if(!Array.isArray(raw)&&Array.isArray(raw.tarj)){TARJ=raw.tarj;gtar()}var ids={};datos.forEach(function(x){ids[x.id]=1});var add=n.filter(function(x){return x&&x.id&&x.fecha&&x.monto&&!ids[x.id]});datos=datos.concat(add);guardar();pag=1;pintar();alert("Se importaron "+add.length+" movimientos.")}catch(e){alert("El archivo no es un respaldo válido.")}};r.readAsText(f);this.value=""};
 cargar();lpre();ltar();opciones();pintar();
-window.addEventListener("hashchange",ruta);ruta();
+window.addEventListener("hashchange",ruta);lseg();segUI();if(SEG.on)bloquear();else ruta();
 if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0)navigator.serviceWorker.register("sw.js").catch(function(){});
 </script>
 </body>
