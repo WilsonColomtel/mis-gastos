@@ -6,7 +6,7 @@
 <title>Mis gastos</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#14463a">
-<script>try{var sg=JSON.parse(localStorage.getItem("mis-gastos-seg")||"{}");if(sg.on)document.documentElement.setAttribute("data-lock","1")}catch(e){}</script>
+<script>try{var sg=JSON.parse(localStorage.getItem("mis-gastos-seg")||"{}");if(sg.on&&Date.now()-(+localStorage.getItem("mis-gastos-ult")||0)>=(sg.min===undefined?5:sg.min)*60000)document.documentElement.setAttribute("data-lock","1")}catch(e){}</script>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
@@ -154,16 +154,19 @@ html[data-lock="1"] main,html[data-lock="1"] .fabs{visibility:hidden}
 #bloq{position:fixed;inset:0;z-index:1000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center}
 #bloq[hidden]{display:none}
 #bloq input{max-width:220px;text-align:center;font-size:22px;letter-spacing:6px}
+body:not(.fin) .fz{display:none}
+body.fin main>*:not(h1):not(.tabs):not(.fz):not(.mes):not(#alerta):not(#vAjus){display:none}
 </style>
 </head>
 <body>
 <main>
 <h1>Mis gastos</h1>
-<div class="tabs"><button id="tInicio" class="on">Inicio</button><button id="tAjus">Ajustes</button></div>
+<div class="tabs"><button id="tInicio" class="on">Inicio</button><button id="tFin">Finanzas</button><button id="tAjus">Ajustes</button></div>
 <div id="vAjus"><section><h2>Seguridad</h2><div class="card2">
 <label class="sw"><span>Pedir autenticación al abrir la app</span><input type="checkbox" id="segOn"></label>
 <div id="segOpc" hidden>
 <label for="segMet">Método</label><select id="segMet"><option value="bio">Huella o bloqueo del celular</option><option value="pin">PIN de la app (4 a 6 dígitos)</option></select>
+<label for="segMin">Volver a pedirla</label><select id="segMin"><option value="0">Cada vez que salga de la app</option><option value="1">Después de 1 minuto fuera</option><option value="5">Después de 5 minutos fuera</option><option value="15">Después de 15 minutos fuera</option><option value="60">Después de 1 hora fuera</option></select>
 <div id="pinW" hidden><label for="pin1">Nuevo PIN</label><input id="pin1" type="password" inputmode="numeric" maxlength="6" autocomplete="off"><label for="pin2">Repite el PIN</label><input id="pin2" type="password" inputmode="numeric" maxlength="6" autocomplete="off"><div class="pt2"><button id="pinG" class="mini2">Guardar PIN</button></div></div>
 </div><div id="segMsg" class="dd" style="margin-top:8px"></div></div>
 <div class="aviso" style="margin-top:12px">Este bloqueo protege la pantalla de la app. Los datos siguen guardados en el navegador sin cifrar y el archivo de respaldo tampoco lleva clave. Si olvidas el PIN, solo se recupera borrando los datos del sitio en Chrome, y se pierden los movimientos que no tengan respaldo.</div></section></div>
@@ -175,11 +178,11 @@ html[data-lock="1"] main,html[data-lock="1"] .fabs{visibility:hidden}
 <div class="dos"><div><small>Ingresos</small><b id="tin"></b></div><div><small>Gastos</small><b id="tout"></b></div></div>
 </div>
 <section id="resumen" hidden><h2>En qué se fue la plata</h2><div id="cats"></div></section>
-<section><details id="dT"><summary>Tarjetas por pagar</summary><div><div id="tWrap"><div id="tList" class="carr"></div><div id="tDots" class="dots"></div><div id="tCtl"></div></div>
+<section class="fz"><details id="dT"><summary>Tarjetas por pagar</summary><div><div id="tWrap"><div id="tList" class="carr"></div><div id="tDots" class="dots"></div><div id="tCtl"></div></div>
 <div class="pt2"><select id="tBanco" aria-label="Estilo de tarjeta"></select><input id="tColor" type="color" value="#14463a" hidden aria-label="Color de la tarjeta"></div>
 <div class="pt2"><input id="tNom" placeholder="Nombre (opcional)" autocomplete="off"><input id="tDia" inputmode="numeric" placeholder="Día de pago (1 a 28)" autocomplete="off"><input id="tU4" inputmode="numeric" maxlength="4" placeholder="Últimos 4 dígitos (opcional)" autocomplete="off"><button id="tAdd" class="mini2">Agregar tarjeta</button></div></div></details></section>
-<section><details id="dG"><summary>Gráfico mes a mes</summary><div id="grafM"></div></details></section>
-<section><details id="dP"><summary>Presupuesto mensual</summary><div id="presu"></div></details></section>
+<section class="fz"><details id="dG"><summary>Gráfico mes a mes</summary><div id="grafM"></div></details></section>
+<section class="fz"><details id="dP"><summary>Presupuesto mensual</summary><div id="presu"></div></details></section>
 <section><h2>Movimientos</h2>
 <div class="filtros">
 <input id="fq" type="search" placeholder="Buscar por nota, categoría o monto" aria-label="Buscar">
@@ -435,11 +438,11 @@ function regBio(){
   return navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:"Mis gastos"},user:{id:crypto.getRandomValues(new Uint8Array(16)),name:"mis-gastos",displayName:"Mis gastos"},pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],authenticatorSelection:{authenticatorAttachment:"platform",userVerification:"required"},timeout:60000}}).then(function(c){SEG.cred=b64(c.rawId)})}
 function verBio(){return navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:"public-key",id:deb64(SEG.cred),transports:["internal"]}],userVerification:"required",timeout:60000}})}
 function segM(t){$("segMsg").textContent=t}
-function segUI(){$("segOn").checked=!!SEG.on;$("segOpc").hidden=!SEG.on;$("segMet").value=SEG.met||"bio";$("pinW").hidden=$("segMet").value!=="pin";segM(SEG.on?"Activada: "+(SEG.met==="pin"?"PIN de la app.":"huella o bloqueo del celular."):"")}
+function segUI(){$("segOn").checked=!!SEG.on;$("segOpc").hidden=!SEG.on;$("segMet").value=SEG.met||"bio";$("segMin").value=String(SEG.min===undefined?5:SEG.min);$("pinW").hidden=$("segMet").value!=="pin";segM(SEG.on?"Activada: "+(SEG.met==="pin"?"PIN de la app.":"huella o bloqueo del celular."):"")}
 function iniciarSeg(){
   var met=$("segMet").value;SEG.met=met;$("pinW").hidden=met!=="pin";
   if(met==="bio"){segM("Confirma con tu huella o el bloqueo del celular…");
-    regBio().then(function(){SEG.on=true;gseg();segUI()}).catch(function(){SEG.on=false;gseg();$("segOn").checked=false;$("segOpc").hidden=true;segM("No se pudo activar: el celular o el navegador no permitió la huella. Prueba con PIN.")})}
+    regBio().then(function(){SEG.on=true;gseg();ult();segUI()}).catch(function(){SEG.on=false;gseg();$("segOn").checked=false;$("segOpc").hidden=true;segM("No se pudo activar: el celular o el navegador no permitió la huella. Prueba con PIN.")})}
   else{SEG.on=false;segM("Escribe y guarda un PIN para activar la autenticación.")}}
 $("segOn").onchange=function(){if(this.checked){$("segOpc").hidden=false;iniciarSeg()}else{SEG.on=false;gseg();$("segOpc").hidden=true;segM("Autenticación desactivada.")}};
 $("segMet").onchange=function(){iniciarSeg()};
@@ -447,8 +450,8 @@ $("pinG").onclick=function(){var a=$("pin1").value,b=$("pin2").value;
   if(!/^\d{4,6}$/.test(a)){segM("El PIN debe tener de 4 a 6 números.");return}
   if(a!==b){segM("Los dos PIN no coinciden.");return}
   var salt=crypto.getRandomValues(new Uint8Array(16));
-  hashPin(a,salt).then(function(h){SEG.met="pin";SEG.salt=b64(salt);SEG.hash=h;SEG.on=true;gseg();$("pin1").value="";$("pin2").value="";segUI()}).catch(function(){segM("No se pudo guardar el PIN en este navegador.")})};
-function abrir(){document.documentElement.removeAttribute("data-lock");$("bloq").hidden=true;ruta()}
+  hashPin(a,salt).then(function(h){SEG.met="pin";SEG.salt=b64(salt);SEG.hash=h;SEG.on=true;gseg();ult();$("pin1").value="";$("pin2").value="";segUI()}).catch(function(){segM("No se pudo guardar el PIN en este navegador.")})};
+function abrir(){ult();document.documentElement.removeAttribute("data-lock");$("bloq").hidden=true;ruta()}
 function probar(){
   if(SEG.met==="pin"){hashPin($("bPinI").value,deb64(SEG.salt)).then(function(h){if(h===SEG.hash)abrir();else{$("bErr").textContent="PIN incorrecto";$("bPinI").value=""}}).catch(function(){$("bErr").textContent="No se pudo verificar el PIN."})}
   else verBio().then(abrir).catch(function(){$("bErr").textContent="No se pudo verificar. Toca el botón para intentar otra vez."})}
@@ -459,9 +462,14 @@ function bloquear(){
   if(pin)$("bPinI").value="";else probar()}
 $("bBtn").onclick=probar;
 $("bPinI").addEventListener("keydown",function(e){if(e.key==="Enter")probar()});
-document.addEventListener("visibilitychange",function(){if(!SEG.on)return;if(document.hidden)fuera=Date.now();else if(fuera&&Date.now()-fuera>60000&&$("bloq").hidden)bloquear()});
-$("tAjus").onclick=function(){document.body.classList.add("aj");$("tAjus").className="on";$("tInicio").className="";window.scrollTo(0,0)};
-$("tInicio").onclick=function(){document.body.classList.remove("aj");$("tInicio").className="on";$("tAjus").className="";window.scrollTo(0,0)};
+function ult(){try{localStorage.setItem("mis-gastos-ult",String(Date.now()))}catch(e){}}
+function debeBloq(){return Date.now()-(+localStorage.getItem("mis-gastos-ult")||0)>=(SEG.min===undefined?5:SEG.min)*60000}
+$("segMin").onchange=function(){SEG.min=+this.value;gseg()};
+document.addEventListener("visibilitychange",function(){if(!SEG.on)return;if(document.hidden){fuera=Date.now();if($("bloq").hidden)ult()}else if(fuera&&Date.now()-fuera>=(SEG.min===undefined?5:SEG.min)*60000&&$("bloq").hidden)bloquear()});
+window.addEventListener("pagehide",function(){if(SEG.on&&$("bloq").hidden)ult()});
+setInterval(function(){if(SEG.on&&!document.hidden&&$("bloq").hidden)ult()},15000);
+function vista(v){document.body.classList.toggle("aj",v==="aj");document.body.classList.toggle("fin",v==="fin");$("tInicio").className=v==="in"?"on":"";$("tFin").className=v==="fin"?"on":"";$("tAjus").className=v==="aj"?"on":"";window.scrollTo(0,0);if(v==="fin")ir()}
+$("tInicio").onclick=function(){vista("in")};$("tFin").onclick=function(){vista("fin")};$("tAjus").onclick=function(){vista("aj")};
 function op(v){return '<option value="'+esc(v)+'">'+esc(v)+'</option>'}
 function campos(){var c=$("cat").value;$("cOtro").hidden=!/^Otros/.test(c);$("pPer").hidden=c!=="Préstamos";$("perL").textContent=tipo==="e"?"¿A quién le prestaste?":"¿Quién te prestó o te pagó?";$("mOtro").hidden=$("medio").value!=="Otro banco";
   $("tOtro").hidden=!($("medio").value==="Tarjeta de crédito"&&tipo==="e");
@@ -497,7 +505,7 @@ $("exp").onclick=function(){var b=new Blob([JSON.stringify({movs:datos,presu:PRE
 $("impb").onclick=function(){$("imp").click()};
 $("imp").onchange=function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var raw=JSON.parse(r.result),n=Array.isArray(raw)?raw:raw.movs;if(!Array.isArray(n))throw 0;if(!Array.isArray(raw)&&raw.presu&&typeof raw.presu==="object"){PRE=raw.presu;gpre()}if(!Array.isArray(raw)&&Array.isArray(raw.tarj)){TARJ=raw.tarj;gtar()}var ids={};datos.forEach(function(x){ids[x.id]=1});var add=n.filter(function(x){return x&&x.id&&x.fecha&&x.monto&&!ids[x.id]});datos=datos.concat(add);guardar();pag=1;pintar();alert("Se importaron "+add.length+" movimientos.")}catch(e){alert("El archivo no es un respaldo válido.")}};r.readAsText(f);this.value=""};
 cargar();lpre();ltar();opciones();pintar();
-window.addEventListener("hashchange",ruta);lseg();segUI();if(SEG.on)bloquear();else ruta();
+window.addEventListener("hashchange",ruta);lseg();segUI();if(SEG.on&&debeBloq())bloquear();else ruta();
 if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0)navigator.serviceWorker.register("sw.js").catch(function(){});
 </script>
 </body>
