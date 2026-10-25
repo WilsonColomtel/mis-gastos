@@ -227,6 +227,25 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(3
 .cb{background:none;border:0;color:inherit;text-align:left;width:100%;padding:6px 8px;border-radius:10px;font:inherit;font-size:14px;grid-template-columns:130px 1fr auto;margin:2px 0}
 .cb.sel{background:var(--card);outline:1px solid var(--line)}
 .cb small{color:var(--mute);font-size:12px}
+#resumen .seg button{height:36px;font-size:13px}
+.dn{position:relative;width:200px;height:200px;margin:8px auto 10px}
+.dn svg{width:100%;height:100%}
+.dc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.dc small{color:var(--mute);font-size:12px}
+.dc b{font-size:20px;font-weight:800}
+.cr{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 12px;margin:8px 0 0;color:inherit;font:inherit}
+.cr.sel{border-color:var(--brand)}
+.cn{flex:1;min-width:0}
+.cn b{display:block;font-size:15px}
+.cn small{color:var(--mute);font-size:12px}
+.mb{display:block;height:4px;border-radius:2px;background:var(--line);margin-top:6px;overflow:hidden}
+.mb i{display:block;height:100%;border-radius:2px}
+.cv{font-weight:800;font-size:15px;white-space:nowrap}
+.cd{padding:10px 2px 2px}
+.st{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
+.st div{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.st small{display:block;color:var(--mute);font-size:11px}
+.st b{font-size:14px}
 </style>
 </head>
 <body>
@@ -251,7 +270,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(3
 </div>
 <section id="resumen" class="fz"><h2>Gastos por categoría</h2>
 <div class="seg"><button id="cpM" class="on">Este mes</button><button id="cpA">Este año</button><button id="cpT">Todo</button></div>
-<div id="cats"></div><div id="catDet"></div></section>
+<div id="cats"></div></section>
 <section class="iz"><h2>Últimos movimientos</h2><div id="recientes"></div><button id="verTodos" class="mini2" style="width:100%;margin-top:4px">Ver todos y buscar</button></section>
 <section class="fz"><details id="dT"><summary>Tarjetas por pagar</summary><div><div id="tWrap"><div id="tList" class="carr"></div><div id="tDots" class="dots"></div><div id="tCtl"></div></div>
 <div class="pt2"><select id="tBanco" aria-label="Estilo de tarjeta"></select><input id="tColor" type="color" value="#14463a" hidden aria-label="Color de la tarjeta"></div>
@@ -649,21 +668,31 @@ $("rFrec").onchange=function(){try{localStorage.setItem("mis-gastos-rf",this.val
 try{$("rFrec").value=localStorage.getItem("mis-gastos-rf")||"15"}catch(e){}
 persistir();
 var CP="mes",CS=null;
+function dona(it,tot){var C=2*Math.PI*48,off=0,gap=it.length>1?3:0,h="";
+  it.forEach(function(x){var len=Math.max(1,x.v/tot*C-gap);h+='<circle cx="60" cy="60" r="48" fill="none" stroke="'+x.c+'" stroke-width="14" stroke-dasharray="'+len+' '+(C-len)+'" stroke-dashoffset="'+(-off)+'" transform="rotate(-90 60 60)"/>';off+=x.v/tot*C});
+  return '<div class="dn"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="48" fill="none" stroke="var(--line)" stroke-width="14"/>'+h+'</svg><div class="dc"><small>Gastado</small><b>'+cop.format(tot)+'</b></div></div>'}
+function detCat(c,p,y,por,n){
+  var l=datos.filter(function(x){return x.tipo==="e"&&!x.pagoTarjeta&&x.cat===c&&(CP==="todo"||(CP==="mes"?x.fecha.slice(0,7)===p:x.fecha.slice(0,4)===y))}).sort(function(a,b){return b.fecha.localeCompare(a.fecha)||b.id-a.id}),
+    mayor=l.reduce(function(a,b){return b.monto>a.monto?b:a},l[0]);
+  return '<div class="cd"><div class="st"><div><small>Total</small><b>'+cop.format(por[c])+'</b></div><div><small>Promedio</small><b>'+cop.format(Math.round(por[c]/n[c]))+'</b></div><div><small>Mayor</small><b>'+cop.format(mayor.monto)+'</b></div></div>'+l.slice(0,15).map(fila).join("")+(l.length>15?'<div class="dd" style="text-align:center">y '+(l.length-15)+' más</div>':'')+'<button class="mini2" data-bus="'+esc(c)+'" style="width:100%;margin-top:8px">Ver todos en Buscar</button></div>'}
 function catRes(){
-  var p=mesKey(),y=String(ver.getFullYear()),por={},n={},tot=0;
-  datos.forEach(function(x){if(x.tipo!=="e"||x.pagoTarjeta)return;var f=x.fecha;if(CP==="mes"&&f.slice(0,7)!==p)return;if(CP==="anio"&&f.slice(0,4)!==y)return;por[x.cat]=(por[x.cat]||0)+x.monto;n[x.cat]=(n[x.cat]||0)+1;tot+=x.monto});
+  var p=mesKey(),y=String(ver.getFullYear()),por={},n={},tot=0,cnt=0;
+  datos.forEach(function(x){if(x.tipo!=="e"||x.pagoTarjeta)return;var f=x.fecha;if(CP==="mes"&&f.slice(0,7)!==p)return;if(CP==="anio"&&f.slice(0,4)!==y)return;por[x.cat]=(por[x.cat]||0)+x.monto;n[x.cat]=(n[x.cat]||0)+1;tot+=x.monto;cnt++});
   $("cpM").className=CP==="mes"?"on":"";$("cpA").className=CP==="anio"?"on":"";$("cpT").className=CP==="todo"?"on":"";
-  var ks=Object.keys(por).sort(function(a,b){return por[b]-por[a]}),mx=ks.length?por[ks[0]]:1;
-  if(!ks.length){CS=null;$("cats").innerHTML='<div class="vacio">Sin gastos en este periodo.</div>';$("catDet").innerHTML="";return}
-  $("cats").innerHTML=ks.map(function(k){var e=estCat(k);return '<button class="barra cb'+(k===CS?' sel':'')+'" data-c="'+esc(k)+'"><span>'+e[0]+' '+esc(k)+'</span><i style="width:'+Math.max(4,por[k]/mx*100)+'%;background:'+e[1]+'"></i><span>'+cop.format(por[k])+' <small>· '+n[k]+'</small></span></button>'}).join("");
-  if(CS&&por[CS]!==undefined){
-    var l=datos.filter(function(x){return x.tipo==="e"&&!x.pagoTarjeta&&x.cat===CS&&(CP==="todo"||(CP==="mes"?x.fecha.slice(0,7)===p:x.fecha.slice(0,4)===y))}).sort(function(a,b){return b.fecha.localeCompare(a.fecha)||b.id-a.id}),
-      mayor=l.reduce(function(a,b){return b.monto>a.monto?b:a},l[0]);
-    $("catDet").innerHTML='<div class="card2" style="margin-top:10px"><b>'+estCat(CS)[0]+' '+esc(CS)+'</b><div class="dd">'+n[CS]+(n[CS]===1?' movimiento':' movimientos')+' · Total '+cop.format(por[CS])+' · Promedio '+cop.format(Math.round(por[CS]/n[CS]))+'</div><div class="dd">'+Math.round(por[CS]/tot*100)+'% de tus gastos · Mayor: '+cop.format(mayor.monto)+' ('+mayor.fecha.split("-").reverse().join("/")+')</div></div><div style="margin-top:8px">'+l.slice(0,15).map(fila).join("")+(l.length>15?'<div class="dd" style="text-align:center">y '+(l.length-15)+' más</div>':'')+'</div><button class="mini2" data-bus="'+esc(CS)+'" style="width:100%;margin-top:8px">Ver todos en Buscar</button>'}
-  else{CS=null;$("catDet").innerHTML='<div class="dd" style="margin-top:8px">Toca una categoría para ver cuántos movimientos tienes, el total, el promedio y el detalle.</div>'}}
-$("cats").onclick=function(e){var b=e.target.closest(".cb");if(!b)return;CS=CS===b.dataset.c?null:b.dataset.c;catRes()};
+  var ks=Object.keys(por).sort(function(a,b){return por[b]-por[a]});
+  if(!ks.length){CS=null;$("cats").innerHTML='<div class="vacio">Sin gastos en este periodo.</div>';return}
+  if(CS&&por[CS]===undefined)CS=null;
+  var it=ks.slice(0,6).map(function(k){return{v:por[k],c:estCat(k)[1]}}),resto=ks.slice(6).reduce(function(a,k){return a+por[k]},0);if(resto)it.push({v:resto,c:"#9ca3af"});
+  var h=dona(it,tot)+'<div class="dd" style="text-align:center;margin-bottom:4px">'+cnt+(cnt===1?' movimiento':' movimientos')+' en '+(CP==="mes"?'el mes':CP==="anio"?'el año':'todo el historial')+'</div>';
+  ks.forEach(function(k){var e=estCat(k),pc=Math.round(por[k]/tot*100);
+    h+='<button class="cr'+(k===CS?' sel':'')+'" data-c="'+esc(k)+'"><span class="ci" style="background:'+e[1]+'2e">'+e[0]+'</span><span class="cn"><b>'+esc(k)+'</b><small>'+n[k]+(n[k]===1?' movimiento':' movimientos')+' · '+pc+'%</small><span class="mb"><i style="width:'+pc+'%;background:'+e[1]+'"></i></span></span><span class="cv">'+cop.format(por[k])+'</span></button>';
+    if(k===CS)h+=detCat(k,p,y,por,n)});
+  $("cats").innerHTML=h}
+$("cats").onclick=function(e){var bs=e.target.closest("[data-bus]");
+  if(bs){$("fc").value=bs.dataset.bus;$("fp").value=CP==="mes"?"mes":"todo";$("ft").value="e";pag=1;pintar();vista("bus");return}
+  var b=e.target.closest(".cr");if(b){CS=CS===b.dataset.c?null:b.dataset.c;catRes();return}
+  $("lista").onclick.call(this,e)};
 $("cpM").onclick=function(){CP="mes";CS=null;catRes()};$("cpA").onclick=function(){CP="anio";CS=null;catRes()};$("cpT").onclick=function(){CP="todo";CS=null;catRes()};
-$("catDet").onclick=function(e){var b=e.target.closest("[data-bus]");if(b){$("fc").value=b.dataset.bus;$("fp").value=CP==="mes"?"mes":"todo";$("ft").value="e";pag=1;pintar();vista("bus");return}$("lista").onclick.call(this,e)};
 function op(v){return '<option value="'+esc(v)+'">'+esc(v)+'</option>'}
 function campos(){var c=$("cat").value;$("cOtro").hidden=!/^Otros/.test(c);$("pPer").hidden=c!=="Préstamos";$("perL").textContent=tipo==="e"?"¿A quién le prestaste?":"¿Quién te prestó o te pagó?";$("mOtro").hidden=$("medio").value!=="Otro banco";
   $("tOtro").hidden=!($("medio").value==="Tarjeta de crédito"&&tipo==="e");
