@@ -257,11 +257,15 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(3
 .sx .mov{-webkit-touch-callout:none}
 .aa button{width:100%;height:50px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:600 16px Figtree,system-ui,sans-serif;margin-bottom:8px}
 .aa button.r{color:#dc2626}
+.lg{width:32px;height:32px;vertical-align:-8px;margin-right:10px;border-radius:8px}
+.lgb{width:92px;height:92px;margin:0 0 6px;border-radius:22px}
+#bloq h1{margin:0 0 4px}
 </style>
 </head>
 <body>
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true"><symbol id="logo" viewBox="0 0 160 160"><rect width="160" height="160" rx="30" fill="#e2f0e8"/><g transform="rotate(-8 80 80)"><rect x="20" y="46" width="120" height="68" rx="8" fill="#2e9e6b" stroke="#14463a" stroke-width="3"/><rect x="29" y="55" width="102" height="50" rx="4" fill="none" stroke="#bfe8d5" stroke-width="1.5"/><circle cx="80" cy="80" r="21" fill="#bfe8d5"/><rect x="66" y="68" width="28" height="7" rx="2" fill="#14463a"/><rect x="76.5" y="68" width="7" height="25" rx="2" fill="#14463a"/><circle cx="40" cy="66" r="3.5" fill="#bfe8d5"/><circle cx="120" cy="94" r="3.5" fill="#bfe8d5"/></g></symbol></svg>
 <main>
-<h1>Tebille</h1>
+<h1><svg class="lg" aria-hidden="true"><use href="#logo"/></svg>Tebille</h1>
 
 <div id="vAjus"><section><h2>Apariencia</h2><div class="seg"><button id="thL">☀️ Claro</button><button id="thD">🌙 Oscuro</button><button id="thA">⚙️ Sistema</button></div></section><section><h2>Respaldo y almacenamiento</h2><div class="card2"><label for="rFrec" style="margin-top:0">Recordarme hacer respaldo</label><select id="rFrec"><option value="7">Cada 7 días</option><option value="15">Cada 15 días</option><option value="30">Cada 30 días</option><option value="0">Nunca</option></select><div id="rEst" class="dd" style="margin-top:8px"></div><div class="pt2"><button id="rAhora" class="mini2">Exportar respaldo ahora</button></div></div></section><section><h2>Seguridad</h2><div class="card2">
 <label class="sw"><span>Pedir autenticación al abrir la app</span><input type="checkbox" id="segOn"></label>
@@ -270,7 +274,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(3
 <label for="segMin">Volver a pedirla</label><select id="segMin"><option value="0">Cada vez que salga de la app</option><option value="1">Después de 1 minuto fuera</option><option value="5">Después de 5 minutos fuera</option><option value="15">Después de 15 minutos fuera</option><option value="60">Después de 1 hora fuera</option></select>
 <div id="pinW" hidden><label for="pin1">Nuevo PIN</label><input id="pin1" type="password" inputmode="numeric" maxlength="6" autocomplete="off"><label for="pin2">Repite el PIN</label><input id="pin2" type="password" inputmode="numeric" maxlength="6" autocomplete="off"><div class="pt2"><button id="pinG" class="mini2">Guardar PIN</button></div></div>
 </div><div id="segMsg" class="dd" style="margin-top:8px"></div></div>
-<div class="aviso" style="margin-top:12px">Este bloqueo protege la pantalla de la app. Los datos siguen guardados en el navegador sin cifrar y el archivo de respaldo tampoco lleva clave. Si olvidas el PIN, solo se recupera borrando los datos del sitio en Chrome, y se pierden los movimientos que no tengan respaldo.</div></section></div>
+<div class="aviso" style="margin-top:12px">Este bloqueo protege la pantalla de la app. Con huella puedes guardar además un PIN de respaldo, por si la huella falla. Si te quedas sin acceso, abre en Chrome la dirección de la app terminada en #restablecer-bloqueo: se desactiva el bloqueo y tus datos se conservan. Los datos siguen guardados en el navegador sin cifrar y el archivo de respaldo tampoco lleva clave. Si olvidas el PIN, solo se recupera borrando los datos del sitio en Chrome, y se pierden los movimientos que no tengan respaldo.</div></section></div>
 <div id="aviso" class="aviso" hidden>Este navegador no permite guardar datos. Lo que registres se perderá al cerrar la página.</div>
 <div id="alerta" class="aviso alr" hidden></div>
 <div id="rBan" class="aviso alr" hidden><span id="rTxt"></span><button id="rBtn" class="mini2" style="margin-top:8px;width:100%">Exportar respaldo ahora</button></div>
@@ -331,7 +335,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(3
 <div id="toast" class="toast" role="status"></div>
 
 <dialog id="dSms"><h2 style="margin:0 0 6px;color:var(--ink)">Mensaje del banco</h2><div class="dd">Pega el mensaje de Bancolombia, Nequi u otro banco y la app llena el formulario.</div><textarea id="smsT" rows="5" placeholder="Pega aquí el mensaje"></textarea><div class="acc"><button type="button" class="c" id="smsC">Cancelar</button><button type="button" class="g" id="smsG">Leer mensaje</button></div></dialog>
-<div id="bloq" hidden><h1>Tebille</h1><div id="bMsg" class="dd"></div><div id="bPin" hidden><input id="bPinI" type="password" inputmode="numeric" maxlength="6" placeholder="PIN" autocomplete="off"></div><button id="bBtn" class="mini2" style="min-width:200px"></button><div id="bErr" class="dd cout"></div></div>
+<div id="bloq" hidden><svg class="lg lgb" aria-hidden="true"><use href="#logo"/></svg><h1>Tebille</h1><div id="bMsg" class="dd"></div><div id="bPin" hidden><input id="bPinI" type="password" inputmode="numeric" maxlength="6" placeholder="PIN" autocomplete="off"></div><button id="bBtn" class="mini2" style="min-width:200px"></button><button id="bAlt" class="mini2" hidden style="min-width:200px;background:transparent;border-color:transparent;color:var(--mute)">Usar PIN de respaldo</button><div id="bErr" class="dd cout"></div></div>
 <dialog id="dCu" class="sheet"><div class="grab"></div><h2 style="margin:0 0 6px;color:var(--ink)">Compra a cuotas</h2>
 <label for="cuD">Descripción</label><input id="cuD" placeholder="Ej: Nevera" autocomplete="off">
 <label for="cuB">Beneficiario (si es un favor a otra persona)</label><input id="cuB" placeholder="Opcional" autocomplete="off">
@@ -592,30 +596,37 @@ function regBio(){
   return navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:"Tebille"},user:{id:crypto.getRandomValues(new Uint8Array(16)),name:"mis-gastos",displayName:"Tebille"},pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],authenticatorSelection:{authenticatorAttachment:"platform",userVerification:"required"},timeout:60000}}).then(function(c){SEG.cred=b64(c.rawId)})}
 function verBio(){return navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:"public-key",id:deb64(SEG.cred),transports:["internal"]}],userVerification:"required",timeout:60000}})}
 function segM(t){$("segMsg").textContent=t}
-function segUI(){$("segOn").checked=!!SEG.on;$("segOpc").hidden=!SEG.on;$("segMet").value=SEG.met||"bio";$("segMin").value=String(SEG.min===undefined?5:SEG.min);$("pinW").hidden=$("segMet").value!=="pin";segM(SEG.on?"Activada: "+(SEG.met==="pin"?"PIN de la app.":"huella o bloqueo del celular."):"")}
+function segUI(){$("segOn").checked=!!SEG.on;$("segOpc").hidden=!SEG.on;$("segMet").value=SEG.met||"bio";$("segMin").value=String(SEG.min===undefined?5:SEG.min);$("pinW").hidden=!SEG.on&&!$("segOn").checked;segM(SEG.on?"Activada: "+(SEG.met==="pin"?"PIN de la app.":"huella o bloqueo del celular"+(SEG.hash?" (con PIN de respaldo).":".")):"")}
 function iniciarSeg(){
-  var met=$("segMet").value;SEG.met=met;$("pinW").hidden=met!=="pin";
+  var met=$("segMet").value;SEG.met=met;$("pinW").hidden=false;
   if(met==="bio"){segM("Confirma con tu huella o el bloqueo del celular…");
     regBio().then(function(){SEG.on=true;gseg();ult();segUI()}).catch(function(){SEG.on=false;gseg();$("segOn").checked=false;$("segOpc").hidden=true;segM("No se pudo activar: el celular o el navegador no permitió la huella. Prueba con PIN.")})}
-  else{SEG.on=false;segM("Escribe y guarda un PIN para activar la autenticación.")}}
+  else if(SEG.hash){SEG.on=true;gseg();ult();segUI()}else{SEG.on=false;segM("Escribe y guarda un PIN para activar la autenticación.")}}
 $("segOn").onchange=function(){if(this.checked){$("segOpc").hidden=false;iniciarSeg()}else{SEG.on=false;gseg();$("segOpc").hidden=true;segM("Autenticación desactivada.")}};
 $("segMet").onchange=function(){iniciarSeg()};
 $("pinG").onclick=function(){var a=$("pin1").value,b=$("pin2").value;
   if(!/^\d{4,6}$/.test(a)){segM("El PIN debe tener de 4 a 6 números.");return}
   if(a!==b){segM("Los dos PIN no coinciden.");return}
   var salt=crypto.getRandomValues(new Uint8Array(16));
-  hashPin(a,salt).then(function(h){SEG.met="pin";SEG.salt=b64(salt);SEG.hash=h;SEG.on=true;gseg();ult();$("pin1").value="";$("pin2").value="";segUI()}).catch(function(){segM("No se pudo guardar el PIN en este navegador.")})};
+  hashPin(a,salt).then(function(h){SEG.salt=b64(salt);SEG.hash=h;if($("segMet").value==="pin"){SEG.met="pin";SEG.on=true}gseg();ult();$("pin1").value="";$("pin2").value="";segUI();if(SEG.met!=="pin")segM("PIN de respaldo guardado.")}).catch(function(){segM("No se pudo guardar el PIN en este navegador.")})};
 function abrir(){ult();document.documentElement.removeAttribute("data-lock");$("bloq").hidden=true;ruta()}
-function probar(){
-  if(SEG.met==="pin"){hashPin($("bPinI").value,deb64(SEG.salt)).then(function(h){if(h===SEG.hash)abrir();else{$("bErr").textContent="PIN incorrecto";$("bPinI").value=""}}).catch(function(){$("bErr").textContent="No se pudo verificar el PIN."})}
-  else verBio().then(abrir).catch(function(){$("bErr").textContent="No se pudo verificar. Toca el botón para intentar otra vez."})}
+var PINMODE=false;
+function motivo(e){var n=e&&e.name;
+  if(n==="NotAllowedError")return "Se canceló o no se completó la verificación. Toca el botón para intentarlo otra vez.";
+  if(n==="SecurityError")return "El navegador no permite la huella desde esta dirección. Abre la app desde su enlace de internet.";
+  if(n==="InvalidStateError"||n==="NotFoundError"||n==="TypeError")return "La huella guardada ya no es válida en este celular. Usa tu PIN de respaldo o restablece el bloqueo.";
+  return "No se pudo verificar"+(n?" ("+n+")":"")+". Toca el botón para intentarlo otra vez."}
+function probar(auto){
+  if(SEG.met==="pin"||PINMODE){hashPin($("bPinI").value,deb64(SEG.salt)).then(function(h){if(h===SEG.hash)abrir();else{$("bErr").textContent="PIN incorrecto";$("bPinI").value=""}}).catch(function(){$("bErr").textContent="No se pudo verificar el PIN."})}
+  else Promise.resolve().then(verBio).then(abrir).catch(function(e){$("bErr").textContent=auto===true?"Toca «Desbloquear» para usar tu huella o el bloqueo del celular.":motivo(e)})}
 function bloquear(){
   document.querySelectorAll("dialog[open]").forEach(function(d){d.close()});
-  var pin=SEG.met==="pin";document.documentElement.setAttribute("data-lock","1");$("bloq").hidden=false;$("bErr").textContent="";
+  var pin=SEG.met==="pin";PINMODE=false;$("bAlt").hidden=pin||!SEG.hash;document.documentElement.setAttribute("data-lock","1");$("bloq").hidden=false;$("bErr").textContent="";
   $("bPin").hidden=!pin;$("bBtn").textContent=pin?"Entrar":"Desbloquear";$("bMsg").textContent=pin?"Escribe tu PIN":"Usa tu huella o el bloqueo del celular";
-  if(pin)$("bPinI").value="";else probar()}
-$("bBtn").onclick=probar;
-$("bPinI").addEventListener("keydown",function(e){if(e.key==="Enter")probar()});
+  if(pin)$("bPinI").value="";else probar(true)}
+$("bBtn").onclick=function(){probar(false)};
+$("bAlt").onclick=function(){PINMODE=true;$("bPin").hidden=false;$("bAlt").hidden=true;$("bBtn").textContent="Entrar";$("bMsg").textContent="Escribe tu PIN de respaldo";$("bErr").textContent="";$("bPinI").value="";$("bPinI").focus()};
+$("bPinI").addEventListener("keydown",function(e){if(e.key==="Enter")probar(false)});
 function ult(){try{localStorage.setItem("mis-gastos-ult",String(Date.now()))}catch(e){}}
 function debeBloq(){return Date.now()-(+localStorage.getItem("mis-gastos-ult")||0)>=(SEG.min===undefined?5:SEG.min)*60000}
 $("segMin").onchange=function(){SEG.min=+this.value;gseg()};
@@ -760,7 +771,7 @@ $("exp").onclick=function(){var b=new Blob([JSON.stringify({movs:datos,presu:PRE
 $("impb").onclick=function(){$("imp").click()};
 $("imp").onchange=function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var raw=JSON.parse(r.result),n=Array.isArray(raw)?raw:raw.movs;if(!Array.isArray(n))throw 0;if(!Array.isArray(raw)&&raw.presu&&typeof raw.presu==="object"){PRE=raw.presu;gpre()}if(!Array.isArray(raw)&&Array.isArray(raw.tarj)){TARJ=raw.tarj;gtar()}if(!Array.isArray(raw)&&Array.isArray(raw.cuo)){CUO=raw.cuo;gcuo()}var ids={};datos.forEach(function(x){ids[x.id]=1});var add=n.filter(function(x){return x&&x.id&&x.fecha&&x.monto&&!ids[x.id]});datos=datos.concat(add);guardar();pag=1;pintar();alert("Se importaron "+add.length+" movimientos.")}catch(e){alert("El archivo no es un respaldo válido.")}};r.readAsText(f);this.value=""};
 cargar();lpre();ltar();lcuo();opciones();pintar();
-window.addEventListener("hashchange",ruta);lseg();segUI();if(SEG.on&&debeBloq())bloquear();else ruta();
+window.addEventListener("hashchange",ruta);lseg();if(location.hash==="#restablecer-bloqueo"){SEG.on=false;gseg();history.replaceState(null,"",location.pathname+location.search);document.documentElement.removeAttribute("data-lock");toast("Bloqueo desactivado. Tus datos siguen aquí.")}segUI();if(SEG.on&&debeBloq())bloquear();else ruta();
 if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0)navigator.serviceWorker.register("sw.js").catch(function(){});
 </script>
 </body>
