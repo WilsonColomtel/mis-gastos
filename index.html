@@ -246,6 +246,17 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(3
 .st div{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
 .st small{display:block;color:var(--mute);font-size:11px}
 .st b{font-size:14px}
+.sx{position:relative;margin-bottom:8px;border-radius:14px;overflow:hidden}
+.sx .mov{position:relative;margin:0;touch-action:pan-y;-webkit-user-select:none;user-select:none}
+.swa{position:absolute;inset:0;display:flex;align-items:center;padding:0 20px;font-weight:700;font-size:14px;color:#fff;opacity:0}
+.swa.l{background:#2563eb;justify-content:flex-start}
+.swa.r{background:#dc2626;justify-content:flex-end}
+.sx.dr .swa.l{opacity:1}
+.sx.dl .swa.r{opacity:1}
+.acc2 button.del{margin-top:8px;height:46px;background:transparent;color:#dc2626;border:1px solid var(--line);font-weight:700}
+.sx .mov{-webkit-touch-callout:none}
+.aa button{width:100%;height:50px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:600 16px Figtree,system-ui,sans-serif;margin-bottom:8px}
+.aa button.r{color:#dc2626}
 </style>
 </head>
 <body>
@@ -271,14 +282,14 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(3
 <section id="resumen" class="fz"><h2>Gastos por categoría</h2>
 <div class="seg"><button id="cpM" class="on">Este mes</button><button id="cpA">Este año</button><button id="cpT">Todo</button></div>
 <div id="cats"></div></section>
-<section class="iz"><h2>Últimos movimientos</h2><div id="recientes"></div><button id="verTodos" class="mini2" style="width:100%;margin-top:4px">Ver todos y buscar</button></section>
+<section class="iz"><h2>Últimos movimientos</h2><div class="dd" style="margin:-4px 0 8px">Desliza a la derecha para editar y a la izquierda para eliminar. Mantén presionado para ver más opciones.</div><div id="recientes"></div><button id="verTodos" class="mini2" style="width:100%;margin-top:4px">Ver todos y buscar</button></section>
 <section class="fz"><details id="dT"><summary>Tarjetas por pagar</summary><div><div id="tWrap"><div id="tList" class="carr"></div><div id="tDots" class="dots"></div><div id="tCtl"></div></div>
 <div class="pt2"><select id="tBanco" aria-label="Estilo de tarjeta"></select><input id="tColor" type="color" value="#14463a" hidden aria-label="Color de la tarjeta"></div>
 <div class="pt2"><input id="tNom" placeholder="Nombre (opcional)" autocomplete="off"><input id="tDia" inputmode="numeric" placeholder="Día de pago (1 a 28)" autocomplete="off"><input id="tU4" inputmode="numeric" maxlength="4" placeholder="Últimos 4 dígitos (opcional)" autocomplete="off"><button id="tAdd" class="mini2">Agregar tarjeta</button></div></div></details></section>
 <section class="fz"><details id="dC"><summary>Compras a cuotas</summary><div><div id="cuList"></div><button id="cuNew" class="mini2" style="width:100%;margin-top:6px">+ Nueva compra a cuotas</button></div></details></section>
 <section class="fz"><details id="dG"><summary>Gráficos</summary><div><div class="seg"><button id="gMes" class="on">Por mes</button><button id="gAnio">Por año</button></div><div class="gy" id="gNavY" hidden><button id="gYa" aria-label="Año anterior">‹</button><b id="gYt"></b><button id="gYs" aria-label="Año siguiente">›</button></div><div id="grafM"></div><div id="grafDet" class="dd" style="margin-top:8px"></div></div></details></section>
 <section class="fz"><details id="dP"><summary>Presupuesto mensual</summary><div id="presu"></div></details></section>
-<section class="bz"><h2>Movimientos</h2>
+<section class="bz"><h2>Movimientos</h2><div class="dd" style="margin:-4px 0 8px">Desliza a la derecha para editar y a la izquierda para eliminar. Mantén presionado para ver más opciones.</div>
 <div class="filtros">
 <input id="fq" type="search" placeholder="Buscar por nota, categoría o monto" aria-label="Buscar">
 <select id="fp" aria-label="Periodo"><option value="mes">Este mes</option><option value="todo">Todo el historial</option></select>
@@ -315,7 +326,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(3
 <div class="fil"><span aria-hidden="true">📅</span><input id="fecha" type="date" aria-label="Fecha"></div>
 <div class="fil"><span aria-hidden="true">📝</span><input id="nota" placeholder="Nota opcional (ej. Almuerzo)" autocomplete="off" aria-label="Nota"></div>
 </div>
-<div class="acc2"><button type="button" id="guardar">Guardar movimiento</button></div>
+<div class="acc2"><button type="button" id="guardar">Guardar movimiento</button><button type="button" id="elim" class="del" hidden>Eliminar movimiento</button></div>
 </dialog>
 <div id="toast" class="toast" role="status"></div>
 
@@ -329,6 +340,8 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(3
 <label for="cuMed">Se paga desde</label><select id="cuMed"></select>
 <div id="cuP" class="aviso" style="margin-top:10px"></div>
 <div class="acc"><button class="c" id="cuC" type="button">Cancelar</button><button class="g" id="cuG" type="button">Guardar</button></div></dialog>
+<dialog id="dBor" class="sheet"><div class="grab"></div><h2 style="margin:0 0 6px;color:var(--ink)">¿Eliminar este movimiento?</h2><div id="bTxt" class="dd" style="margin-bottom:14px"></div><div class="acc"><button class="c" id="bNo" type="button">Cancelar</button><button class="g" id="bOk" type="button" style="background:#dc2626;color:#fff">Eliminar</button></div></dialog>
+<dialog id="dAcc" class="sheet"><div class="grab"></div><h2 id="aTxt" style="margin:0 0 12px;color:var(--ink);font-size:18px"></h2><div class="aa"><button type="button" id="aEd">✎ Editar</button><button type="button" id="aDel" class="r">Eliminar</button><button type="button" id="aNo">Cancelar</button></div></dialog>
 <div id="ext"></div>
 <script>
 var CATS={e:["Comida","Mercado","Arriendo","Servicios","Transporte","Suscripciones","Ocio","Salud","Ropa","Deudas","Préstamos","Otros"],i:["Nómina","Transferencia recibida","Venta","Préstamos","Otros ingresos"]};
@@ -392,7 +405,8 @@ $("guardar").onclick=function(){
   guardar();$("dlg").close();toast((ed?"Cambios guardados":(tipo==="e"?"Gasto":"Ingreso")+" guardado")+" · "+cop.format(n));
   var f=($("fecha").value||hoy()).split("-");ver=new Date(+f[0],+f[1]-1,1);pag=1;pintar();
 };
-$("lista").onclick=function(e){var b=e.target.closest("button"),r=e.target.closest(".mov");if(!b||!b.dataset.id){if(r&&r.dataset.eid)editar(r.dataset.eid);return}if(confirm("¿Borrar este movimiento?")){var dm=datos.filter(function(y){return String(y.id)===b.dataset.id})[0];if(dm&&dm.cuotaId){var cc=CUO.filter(function(z){return String(z.id)===String(dm.cuotaId)})[0];if(cc&&cc.pagadas>0){cc.pagadas--;gcuo()}}datos.forEach(function(x){if(String(x.pagoId)===b.dataset.id){x.pagada=false;delete x.pagoId}if(x.pids){var j=x.pids.map(String).indexOf(b.dataset.id);if(j>=0){x.pids.splice(j,1);x.pagadas=pg(x)-1}}});datos=datos.filter(function(x){return String(x.id)!==b.dataset.id});guardar();pintar()}};
+function hacerBorrar(id){if(true){var dm=datos.filter(function(y){return String(y.id)===id})[0];if(dm&&dm.cuotaId){var cc=CUO.filter(function(z){return String(z.id)===String(dm.cuotaId)})[0];if(cc&&cc.pagadas>0){cc.pagadas--;gcuo()}}datos.forEach(function(x){if(String(x.pagoId)===id){x.pagada=false;delete x.pagoId}if(x.pids){var j=x.pids.map(String).indexOf(id);if(j>=0){x.pids.splice(j,1);x.pagadas=pg(x)-1}}});datos=datos.filter(function(x){return String(x.id)!==id});guardar();pintar()}}
+$("lista").onclick=function(e){if(Date.now()-SWIPED<400)return;var b=e.target.closest("button"),r=e.target.closest(".mov");if(b&&b.dataset.id){borrar(b.dataset.id);return}if(r&&r.dataset.eid)editar(r.dataset.eid)};
 $("ant").onclick=function(){ver.setMonth(ver.getMonth()-1);pag=1;GY=null;pintar()};
 $("sig").onclick=function(){ver.setMonth(ver.getMonth()+1);pag=1;GY=null;pintar()};
 var PK="mis-gastos-presu",PRE={};
@@ -499,8 +513,16 @@ $("tWrap").onclick=function(e){var b=e.target.closest("button");if(!b)return;var
       datos.forEach(function(x){if(String(x.tarjeta)===t.id&&aPagar(x)>0){x.pagadas=pg(x)+1;(x.pids=x.pids||[]).push(id)}});guardar();pintar()}}};
 function grafPDF(){var ms=serie(),mx=Math.max.apply(null,ms.map(function(m){return Math.max(m.i,m.e)}).concat([1])),h=function(v){return v?Math.max(2,v/mx*100):0};
   return "<h2>Ingresos y gastos, últimos 6 meses</h2><div class='gm'>"+ms.map(function(m){return "<div class='mc'><div class='bs'><i class='bi' style='height:"+h(m.i)+"%'></i><i class='be' style='height:"+h(m.e)+"%'></i></div><b>"+m.n+"</b><small class='i'>"+corto(m.i)+"</small><small class='e'>"+corto(m.e)+"</small></div>"}).join("")+"</div><div class='pie'><span class='i'>■ Ingresos</span> &nbsp; <span class='e'>■ Gastos</span></div>"}
-var EDIT=null;
-function titulo(){$("dTit").textContent=EDIT?"Editar movimiento":"Nuevo movimiento";$("guardar").textContent=EDIT?"Guardar cambios":"Guardar movimiento"}
+var EDIT=null,SWIPED=0,BID=null,ACC=null;
+function mov(id){return datos.filter(function(y){return String(y.id)===String(id)})[0]}
+function borrar(id){var x=mov(id);if(!x)return;BID=String(id);$("bTxt").textContent=x.cat+" · "+cop.format(x.monto)+(x.nota?" · "+x.nota:"");$("dBor").showModal()}
+$("bOk").onclick=function(){$("dBor").close();if(BID!==null)hacerBorrar(BID);BID=null};
+$("bNo").onclick=function(){$("dBor").close()};
+function acciones(id){var x=mov(id);if(!x)return;ACC=String(id);$("aTxt").textContent=x.cat+" · "+cop.format(x.monto);$("dAcc").showModal()}
+$("aEd").onclick=function(){var i=ACC;$("dAcc").close();editar(i)};
+$("aDel").onclick=function(){var i=ACC;$("dAcc").close();borrar(i)};
+$("aNo").onclick=function(){$("dAcc").close()};
+function titulo(){$("dTit").textContent=EDIT?"Editar movimiento":"Nuevo movimiento";$("guardar").textContent=EDIT?"Guardar cambios":"Guardar movimiento";$("elim").hidden=!EDIT}
 function editar(id){
   var x=datos.filter(function(y){return String(y.id)===id})[0];if(!x)return;
   if(x.pagoTarjeta){alert("Los pagos de tarjeta no se editan. Bórralo (✕) y vuelve a registrar el pago.");return}
@@ -513,6 +535,7 @@ function editar(id){
   $("per").value=x.persona||"";$("nota").value=x.nota||"";$("fecha").value=x.fecha;$("cuo").value=x.cuotas||1;
   campos();if(x.tarjeta)$("tarj").value=String(x.tarjeta);cuoT();titulo();$("dlg").showModal()}
 $("dlg").addEventListener("close",function(){EDIT=null;titulo()});
+$("elim").onclick=function(){var id=String(EDIT);$("dlg").close();borrar(id)};
 $("nuevo").addEventListener("click",function(){EDIT=null;titulo()});
 function num(t){t=String(t).replace(/^[^\d]+|[^\d]+$/g,"");var c=t.lastIndexOf(","),d=t.lastIndexOf("."),v;
   if(c>-1&&d>-1)v=c>d?t.replace(/\./g,"").replace(",","."):t.replace(/,/g,"");
@@ -604,7 +627,7 @@ $("tInicio").onclick=function(){vista("in")};$("tFin").onclick=function(){vista(
 var ESTC={"Mercado":["🛒","#16a34a"],"Comida":["🍽️","#f97316"],"Gasolina":["⛽","#dc2626"],"Transporte":["🚌","#2563eb"],"Arriendo":["🏠","#4f46e5"],"Servicios":["💡","#ca8a04"],"Suscripciones":["🔁","#9333ea"],"Ocio":["🎬","#db2777"],"Salud":["💊","#0d9488"],"Ropa":["👕","#c026d3"],"Deudas":["💳","#b45309"],"Préstamos":["🤝","#64748b"],"Imprevistos":["⚠️","#d97706"],"Otros":["📦","#6b7280"],"Pago de tarjeta":["💳","#0891b2"],"Nómina":["💼","#059669"],"Transferencia recibida":["🏦","#0284c7"],"Venta":["🏷️","#65a30d"],"Otros ingresos":["➕","#10b981"]};
 var ESTK=[[/mascota|perro|gato|veterin/i,"🐾"],[/educ|colegio|universidad|curso|libro/i,"📚"],[/regalo/i,"🎁"],[/gym|gimnasio|deporte/i,"🏋️"],[/viaje|hotel|vuelo/i,"✈️"],[/internet|celular|plan de datos/i,"📱"],[/impuesto|dian|predial/i,"🧾"],[/ahorro/i,"🐷"],[/belleza|peluquer|barber/i,"💈"]],PAL=["#0ea5e9","#f43f5e","#84cc16","#a855f7","#f59e0b","#14b8a6","#ec4899","#6366f1"];
 function estCat(c){var e=ESTC[c];if(e)return e;var h=0,i,ic="🏷️";for(i=0;i<c.length;i++)h=(h*31+c.charCodeAt(i))%997;for(i=0;i<ESTK.length;i++)if(ESTK[i][0].test(c)){ic=ESTK[i][1];break}return[ic,PAL[h%8]]}
-function fila(x){var e=estCat(x.cat);return '<div class="mov" data-eid="'+x.id+'" style="border-left:4px solid '+e[1]+'"><div class="ci" style="background:'+e[1]+'2e">'+e[0]+'</div><div class="t"><b>'+esc(x.cat)+'</b><span>'+esc(x.medio)+tn(x)+(x.persona?" · "+(x.tipo==="e"?"a ":"de ")+esc(x.persona):"")+(x.nota?" · "+esc(x.nota):"")+'</span></div><div class="m '+x.tipo+'">'+(x.tipo==="i"?"+":"−")+cop.format(x.monto)+'</div><button data-e="1" aria-label="Editar">✎</button><button data-id="'+x.id+'" aria-label="Borrar">✕</button></div>'}
+function fila(x){var e=estCat(x.cat);return '<div class="sx" data-eid="'+x.id+'"><div class="swa l">✎ Editar</div><div class="swa r">Eliminar ✕</div><div class="mov" data-eid="'+x.id+'" style="border-left:4px solid '+e[1]+'"><div class="ci" style="background:'+e[1]+'2e">'+e[0]+'</div><div class="t"><b>'+esc(x.cat)+'</b><span>'+esc(x.medio)+tn(x)+(x.persona?" · "+(x.tipo==="e"?"a ":"de ")+esc(x.persona):"")+(x.nota?" · "+esc(x.nota):"")+'</span></div><div class="m '+x.tipo+'">'+(x.tipo==="i"?"+":"−")+cop.format(x.monto)+'</div></div></div>'}
 function reci(){var k=mesKey(),a=datos.filter(function(x){return x.fecha.slice(0,7)===k}).sort(function(u,v){return v.fecha.localeCompare(u.fecha)||v.id-u.id}).slice(0,5);$("recientes").innerHTML=a.length?a.map(fila).join(""):'<div class="vacio">No hay movimientos en este mes.<br>Toca «Agregar» para registrar uno.</div>'}
 $("recientes").onclick=$("lista").onclick;
 $("verTodos").onclick=function(){vista("bus")};
@@ -627,8 +650,8 @@ function sheet(d){var g=d.querySelector(".grab"),y0=0,dy=0;
   g.addEventListener("touchstart",function(e){y0=e.touches[0].clientY;dy=0;d.style.transition="none"},{passive:true});
   g.addEventListener("touchmove",function(e){dy=Math.max(0,e.touches[0].clientY-y0);d.style.transform="translateY("+dy+"px)"},{passive:true});
   g.addEventListener("touchend",function(){d.style.transition="transform .2s";if(dy>110)d.close();d.style.transform="";dy=0});
-  d.addEventListener("click",function(e){var r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()})}
-sheet($("dlg"));sheet($("dCu"));
+  d.addEventListener("click",function(e){if(Date.now()-SWIPED<600)return;var r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()})}
+sheet($("dlg"));sheet($("dCu"));sheet($("dBor"));sheet($("dAcc"));
 [$("nuevo"),$("smsb")].forEach(function(b){var t=0,lp=false;b.addEventListener("touchstart",function(){lp=false;t=setTimeout(function(){lp=true},450)},{passive:true});b.addEventListener("touchend",function(){clearTimeout(t)});b.addEventListener("click",function(e){if(lp){e.stopImmediatePropagation();e.preventDefault();lp=false}},true)});
 var CUO=[];
 function lcuo(){try{var r=localStorage.getItem("mis-gastos-cuotas");CUO=r?JSON.parse(r):[]}catch(e){CUO=[]}}
@@ -693,6 +716,15 @@ $("cats").onclick=function(e){var bs=e.target.closest("[data-bus]");
   var b=e.target.closest(".cr");if(b){CS=CS===b.dataset.c?null:b.dataset.c;catRes();return}
   $("lista").onclick.call(this,e)};
 $("cpM").onclick=function(){CP="mes";CS=null;catRes()};$("cpA").onclick=function(){CP="anio";CS=null;catRes()};$("cpT").onclick=function(){CP="todo";CS=null;catRes()};
+(function(){var el=null,x0=0,y0=0,dx=0,lock=null,W=0,lp=0,lpd=false;
+  document.addEventListener("pointerdown",function(e){var m=e.target.closest&&e.target.closest(".sx .mov");if(!m||e.target.closest("button")||(e.pointerType==="mouse"&&e.button!==0))return;el=m;x0=e.clientX;y0=e.clientY;dx=0;lock=null;W=m.offsetWidth;m.style.transition="none";lp=setTimeout(function(){if(el&&lock===null){var id=el.parentNode.dataset.eid;el.style.transition="";el.style.transform="";el=null;SWIPED=Date.now();lpd=true;if(navigator.vibrate)navigator.vibrate(15);acciones(id)}},550)});
+  document.addEventListener("pointermove",function(e){if(!el)return;var a=e.clientX-x0,b=e.clientY-y0;
+    if(lock===null){if(Math.abs(a)>8||Math.abs(b)>8){lock=Math.abs(a)>Math.abs(b)*1.2?"h":"v";clearTimeout(lp)}else return}
+    if(lock==="v"){el.style.transition="";el=null;return}
+    dx=Math.max(-W*.6,Math.min(W*.6,a));el.style.transform="translateX("+dx+"px)";var w=el.parentNode;w.classList.toggle("dr",dx>0);w.classList.toggle("dl",dx<0)});
+  function fin(){clearTimeout(lp);if(lpd){lpd=false;SWIPED=Date.now()}if(!el)return;var m=el,w=m.parentNode,d=dx,h=lock==="h";el=null;lock=null;dx=0;m.style.transition="transform .2s";m.style.transform="";w.classList.remove("dr","dl");
+    if(h){SWIPED=Date.now();if(d>64)editar(w.dataset.eid);else if(d<-64)borrar(w.dataset.eid)}}
+  document.addEventListener("pointerup",fin);document.addEventListener("pointercancel",fin);document.addEventListener("contextmenu",function(e){if(e.target.closest&&e.target.closest(".sx .mov"))e.preventDefault()})})();
 function op(v){return '<option value="'+esc(v)+'">'+esc(v)+'</option>'}
 function campos(){var c=$("cat").value;$("cOtro").hidden=!/^Otros/.test(c);$("pPer").hidden=c!=="Préstamos";$("perL").textContent=tipo==="e"?"¿A quién le prestaste?":"¿Quién te prestó o te pagó?";$("mOtro").hidden=$("medio").value!=="Otro banco";
   $("tOtro").hidden=!($("medio").value==="Tarjeta de crédito"&&tipo==="e");
