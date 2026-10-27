@@ -3,7 +3,7 @@
 // Lo que protege tus datos son las reglas de Firestore y la restricción de la clave en Google Cloud.
 // NUNCA pegues aquí claves privadas, cuentas de servicio (.json) ni contraseñas.
 window.TEBILLE_CONFIG = {
-  apiKey: "pega_aqui_Tu_Api_Kei",
+  apiKey: "AIzaSyA5b2a1D8U6BBcVnWXbLgUHZrixU7vwBqs",
   authDomain: "tebille.firebaseapp.com",
   projectId: "tebille",
   storageBucket: "tebille.firebasestorage.app",
