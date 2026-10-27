@@ -5,30 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tebille</title>
 <link rel="manifest" href="manifest.json">
+<script src="config.js"></script>
 <meta name="theme-color" content="#14463a">
 <script>try{var tm=localStorage.getItem("mis-gastos-tema");if(tm==="light"||tm==="dark")document.documentElement.setAttribute("data-theme",tm)}catch(e){}</script>
 <script>try{var sg=JSON.parse(localStorage.getItem("mis-gastos-seg")||"{}");if(sg.on&&Date.now()-(+localStorage.getItem("mis-gastos-ult")||0)>=(sg.min===undefined?5:sg.min)*60000)document.documentElement.setAttribute("data-lock","1")}catch(e){}</script>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-
-<!-- CONFIGURACIÓN Y SDKS DE FIREBASE (AUTH + FIRESTORE) -->
-<script src="config.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script>
-  if (window.TEBILLE_CONFIG) {
-    try {
-      firebase.initializeApp(window.TEBILLE_CONFIG);
-      window.db = firebase.firestore();
-      window.auth = firebase.auth();
-      console.log("Firebase Auth y Firestore inicializados correctamente.");
-    } catch(e) {
-      console.error("Error al inicializar Firebase:", e);
-    }
-  }
-</script>
-
 <style>
 :root{--bg:#f3f6f4;--card:#fff;--ink:#14231e;--mute:#62736c;--line:#dbe3df;--in:#0f7a4f;--out:#c2410c;--brand:#14463a;--onbrand:#fff;--nav:rgba(255,255,255,.62);--navink:#3b4a44;--navb:rgba(0,0,0,.08);
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -211,6 +193,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(3
 .pills{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
 .pill{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:600 14px Figtree,system-ui,sans-serif}
 .pill.on{background:var(--brand);color:var(--onbrand);border-color:var(--brand)}
+/* tarjeta del saldo: pastel suave */
 :root{--bbg:#e2f0e8;--bbd:#cfe3d8;--bink:#14463a;--bmute:#4d6b5f;--bchip:#f0f7f3;--binc:#0f7a4f;--bexp:#b4410f}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bbg:#1b2d26;--bbd:#2a423a;--bink:#cfeee0;--bmute:#8db3a3;--bchip:#14221d;--binc:#4fd19b;--bexp:#ff9a62}}
 :root[data-theme="dark"]{--bbg:#1b2d26;--bbd:#2a423a;--bink:#cfeee0;--bmute:#8db3a3;--bchip:#14221d;--binc:#4fd19b;--bexp:#ff9a62}
@@ -278,6 +261,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(3
 .lg{width:32px;height:32px;vertical-align:-8px;margin-right:10px;border-radius:8px}
 .lgb{width:92px;height:92px;margin:0 0 6px;border-radius:22px}
 #bloq h1{margin:0 0 4px}
+.pt2[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -285,7 +269,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(3
 <main>
 <h1><svg class="lg" aria-hidden="true"><use href="#logo"/></svg>Tebille</h1>
 
-<div id="vAjus"><section><h2>Apariencia</h2><div class="seg"><button id="thL">☀️ Claro</button><button id="thD">🌙 Oscuro</button><button id="thA">⚙️ Sistema</button></div></section><section><h2>Respaldo y almacenamiento</h2><div class="card2"><label for="rFrec" style="margin-top:0">Recordarme hacer respaldo</label><select id="rFrec"><option value="7">Cada 7 días</option><option value="15">Cada 15 días</option><option value="30">Cada 30 días</option><option value="0">Nunca</option></select><div id="rEst" class="dd" style="margin-top:8px"></div><div class="pt2"><button id="rAhora" class="mini2">Exportar respaldo ahora</button></div></div></section><section><h2>Seguridad</h2><div class="card2">
+<div id="vAjus"><section><h2>Apariencia</h2><div class="seg"><button id="thL">☀️ Claro</button><button id="thD">🌙 Oscuro</button><button id="thA">⚙️ Sistema</button></div></section><section><h2>Respaldo y almacenamiento</h2><div class="card2"><label for="rFrec" style="margin-top:0">Recordarme hacer respaldo</label><select id="rFrec"><option value="7">Cada 7 días</option><option value="15">Cada 15 días</option><option value="30">Cada 30 días</option><option value="0">Nunca</option></select><div id="rEst" class="dd" style="margin-top:8px"></div><div class="pt2"><button id="rAhora" class="mini2">Exportar respaldo ahora</button></div></div></section><section><h2>Nube (Firebase)</h2><div class="card2"><div id="nbMsg" class="dd">Guarda una copia de tus datos en tu cuenta de Google y úsalos en otro celular.</div><div class="pt2" id="nbIn"><button id="nbEntrar" class="mini2">Iniciar sesión con Google</button></div><div id="nbAjW" style="margin-top:8px"><label class="sw"><span>Es un equipo que no es mío (no recordar mi sesión)</span><input type="checkbox" id="nbAjeno"></label></div><div class="pt2" id="nbOps" hidden><button id="nbSync" class="mini2">Sincronizar ahora</button><button id="nbSalir" class="mini2">Cerrar sesión</button><button id="nbBorrar" class="mini2">Cerrar sesión y borrar datos de este dispositivo</button></div></div></section><section><h2>Seguridad</h2><div class="card2">
 <label class="sw"><span>Pedir autenticación al abrir la app</span><input type="checkbox" id="segOn"></label>
 <div id="segOpc" hidden>
 <label for="segMet">Método</label><select id="segMet"><option value="bio">Huella o bloqueo del celular</option><option value="pin">PIN de la app (4 a 6 dígitos)</option></select>
@@ -362,71 +346,16 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(3
 <label for="cuMed">Se paga desde</label><select id="cuMed"></select>
 <div id="cuP" class="aviso" style="margin-top:10px"></div>
 <div class="acc"><button class="c" id="cuC" type="button">Cancelar</button><button class="g" id="cuG" type="button">Guardar</button></div></dialog>
-<dialog id="dBor" class="sheet"><div class="grab"></div><h2 style="margin:0 0 6px;color:var(--ink)">¿Eliminar este movimiento?</h2><div id="bTxt" class="dd" style="margin-bottom:14px"></div><div class="acc"><button class="c" id="bNo" type="button">Cancelar</button><button class="g" id="bOk" type="button" style="background:#dc2626;color:#fff">Eliminar</button></div></dialog>
+<dialog id="dBor" class="sheet"><div class="grab"></div><h2 id="bTit" style="margin:0 0 6px;color:var(--ink)">¿Eliminar este movimiento?</h2><div id="bTxt" class="dd" style="margin-bottom:14px"></div><div class="acc"><button class="c" id="bNo" type="button">Cancelar</button><button class="g" id="bOk" type="button" style="background:#dc2626;color:#fff">Eliminar</button></div></dialog>
 <dialog id="dAcc" class="sheet"><div class="grab"></div><h2 id="aTxt" style="margin:0 0 12px;color:var(--ink);font-size:18px"></h2><div class="aa"><button type="button" id="aEd">✎ Editar</button><button type="button" id="aDel" class="r">Eliminar</button><button type="button" id="aNo">Cancelar</button></div></dialog>
 <div id="ext"></div>
-
 <script>
 var CATS={e:["Comida","Mercado","Arriendo","Servicios","Transporte","Suscripciones","Ocio","Salud","Ropa","Deudas","Préstamos","Otros"],i:["Nómina","Transferencia recibida","Venta","Préstamos","Otros ingresos"]};
 var MEDIOS=["Efectivo","Bancolombia","Nequi","Transferencia","Tarjeta de crédito","Tarjeta débito","Otro banco"];
 var KEY="mis-gastos-v1",datos=[],ULT=[],PREV=0,SAL=0,TARJ=[],pag=1,tipo="e",ver=new Date();ver.setDate(1);
-
-function cargar(){
-  try{
-    var r=localStorage.getItem(KEY);
-    datos=r?JSON.parse(r):[];
-  }catch(e){
-    datos=[];
-    document.getElementById("aviso").hidden=false;
-  }
-
-  // Sincronización con Firebase Authentication y Firestore
-  if(window.auth && window.db){
-    window.auth.onAuthStateChanged(function(user){
-      if(user){
-        window.db.collection("usuarios").doc(user.uid).get().then(function(doc){
-          if(doc.exists){
-            var d=doc.data();
-            if(d.movimientos){
-              datos=d.movimientos;
-              PRE=d.presupuesto||{};
-              TARJ=d.tarjetas||[];
-              CUO=d.cuotas||[];
-              pintar();
-            }
-          }
-        }).catch(function(e){console.log("Error al cargar de la nube:",e);});
-      } else {
-        var provider=new firebase.auth.GoogleAuthProvider();
-        window.auth.signInWithPopup(provider).catch(function(error){
-          console.log("Autenticación requerida:",error);
-        });
-      }
-    });
-  }
-}
-
-function guardar(){
-  try{
-    localStorage.setItem(KEY,JSON.stringify(datos));
-    
-    var user=window.auth?window.auth.currentUser:null;
-    if(window.db && user){
-      window.db.collection("usuarios").doc(user.uid).set({
-        movimientos:datos,
-        presupuesto:PRE,
-        tarjetas:TARJ,
-        cuotas:CUO,
-        ultimaActualizacion:new Date()
-      }).catch(function(e){
-        console.error("Error al sincronizar con Firebase:",e);
-      });
-    }
-  }catch(e){
-    document.getElementById("aviso").hidden=false;
-  }
-}
-
+function cargar(){try{var r=localStorage.getItem(KEY);datos=r?JSON.parse(r):[]}catch(e){datos=[];document.getElementById("aviso").hidden=false}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(datos))}catch(e){document.getElementById("aviso").hidden=false}}
+function guardar(){if(SY.on)stamp();persist();programar()}
 var $=function(i){return document.getElementById(i)};
 var cop0=new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}),OC=false,cop={format:function(n){return OC?"$ ••••":cop0.format(n)}};
 try{OC=localStorage.getItem("mis-gastos-oc")==="1"}catch(e){}
@@ -489,7 +418,7 @@ $("ant").onclick=function(){ver.setMonth(ver.getMonth()-1);pag=1;GY=null;pintar(
 $("sig").onclick=function(){ver.setMonth(ver.getMonth()+1);pag=1;GY=null;pintar()};
 var PK="mis-gastos-presu",PRE={};
 function lpre(){try{var r=localStorage.getItem(PK);PRE=r?JSON.parse(r):{}}catch(e){PRE={}}}
-function gpre(){try{localStorage.setItem(PK,JSON.stringify(PRE))}catch(e){}}
+function gpre(){try{localStorage.setItem(PK,JSON.stringify(PRE))}catch(e){}cfgSt("presu")}
 function mesKey(){return ver.getFullYear()+"-"+String(ver.getMonth()+1).padStart(2,"0")}
 function gMes(){var p=mesKey(),g={};datos.forEach(function(x){if(x.tipo==="e"&&!x.pagoTarjeta&&x.fecha.slice(0,7)===p)g[x.cat]=(g[x.cat]||0)+x.monto});return g}
 function corto(n){if(OC)return "••";return n>=1e6?(n/1e6).toFixed(1).replace(".",",")+"M":n>=1e3?Math.round(n/1e3)+"k":String(n)}
@@ -531,7 +460,7 @@ $("presu").addEventListener("input",function(e){var t=e.target;if(t.dataset.k===
 $("presu").addEventListener("change",function(e){var t=e.target;if(t.dataset.k===undefined)return;var n=parseInt(t.value.replace(/\D/g,""),10)||0;if(n)PRE[t.dataset.k]=n;else delete PRE[t.dataset.k];gpre();presupuesto()});
 var TK="mis-gastos-tarj";
 function ltar(){try{var r=localStorage.getItem(TK);TARJ=r?JSON.parse(r):[]}catch(e){TARJ=[]}}
-function gtar(){try{localStorage.setItem(TK,JSON.stringify(TARJ))}catch(e){}}
+function gtar(){try{localStorage.setItem(TK,JSON.stringify(TARJ))}catch(e){}cfgSt("tarj")}
 function efecto(x){return x.tipo==="i"?x.monto:(x.tarjeta?0:-x.monto)}
 function buscar(id){return TARJ.filter(function(t){return t.id===id})[0]}
 function tn(x){var t=x.tarjeta?buscar(String(x.tarjeta)):null;return t?" · "+esc(t.nombre)+(nC(x)>1?" · "+pg(x)+"/"+nC(x)+" cuotas":""):""}
@@ -593,8 +522,10 @@ function grafPDF(){var ms=serie(),mx=Math.max.apply(null,ms.map(function(m){retu
   return "<h2>Ingresos y gastos, últimos 6 meses</h2><div class='gm'>"+ms.map(function(m){return "<div class='mc'><div class='bs'><i class='bi' style='height:"+h(m.i)+"%'></i><i class='be' style='height:"+h(m.e)+"%'></i></div><b>"+m.n+"</b><small class='i'>"+corto(m.i)+"</small><small class='e'>"+corto(m.e)+"</small></div>"}).join("")+"</div><div class='pie'><span class='i'>■ Ingresos</span> &nbsp; <span class='e'>■ Gastos</span></div>"}
 var EDIT=null,SWIPED=0,BID=null,ACC=null;
 function mov(id){return datos.filter(function(y){return String(y.id)===String(id)})[0]}
-function borrar(id){var x=mov(id);if(!x)return;BID=String(id);$("bTxt").textContent=x.cat+" · "+cop.format(x.monto)+(x.nota?" · "+x.nota:"");$("dBor").showModal()}
-$("bOk").onclick=function(){$("dBor").close();if(BID!==null)hacerBorrar(BID);BID=null};
+var PREG=null;
+function pregunta(t,x,b,cb){PREG=cb;$("bTit").textContent=t;$("bTxt").textContent=x;$("bOk").textContent=b;$("dBor").showModal()}
+function borrar(id){var x=mov(id);if(!x)return;pregunta("¿Eliminar este movimiento?",x.cat+" · "+cop.format(x.monto)+(x.nota?" · "+x.nota:""),"Eliminar",function(){hacerBorrar(String(id))})}
+$("bOk").onclick=function(){$("dBor").close();var f=PREG;PREG=null;if(f)f()};
 $("bNo").onclick=function(){$("dBor").close()};
 function acciones(id){var x=mov(id);if(!x)return;ACC=String(id);$("aTxt").textContent=x.cat+" · "+cop.format(x.monto);$("dAcc").showModal()}
 $("aEd").onclick=function(){var i=ACC;$("dAcc").close();editar(i)};
@@ -707,7 +638,7 @@ $("segMin").onchange=function(){SEG.min=+this.value;gseg()};
 document.addEventListener("visibilitychange",function(){if(!SEG.on)return;if(document.hidden){fuera=Date.now();if($("bloq").hidden)ult()}else if(fuera&&Date.now()-fuera>=(SEG.min===undefined?5:SEG.min)*60000&&$("bloq").hidden)bloquear()});
 window.addEventListener("pagehide",function(){if(SEG.on&&$("bloq").hidden)ult()});
 setInterval(function(){if(SEG.on&&!document.hidden&&$("bloq").hidden)ult()},15000);
-function vista(v){document.body.classList.toggle("aj",v==="aj");document.body.classList.toggle("fin",v==="fin");document.body.classList.toggle("bus",v==="bus");$("tInicio").className=v==="in"?"on":"";$("tFin").className=v==="fin"?"on":"";$("tBus").className=v==="bus"?"on":"";$("tAjus").className=v==="aj"?"on":"";window.scrollTo(0,0);if(v==="fin")ir()}
+function vista(v){document.body.classList.toggle("aj",v==="aj");document.body.classList.toggle("fin",v==="fin");document.body.classList.toggle("bus",v==="bus");$("tInicio").className=v==="in"?"on":"";$("tFin").className=v==="fin"?"on":"";$("tBus").className=v==="bus"?"on":"";$("tAjus").className=v==="aj"?"on":"";window.scrollTo(0,0);if(v==="fin")ir();if(v==="aj")nubePrep()}
 $("tInicio").onclick=function(){vista("in")};$("tFin").onclick=function(){vista("fin")};$("tBus").onclick=function(){vista("bus")};$("tAjus").onclick=function(){vista("aj")};
 var ESTC={"Mercado":["🛒","#16a34a"],"Comida":["🍽️","#f97316"],"Gasolina":["⛽","#dc2626"],"Transporte":["🚌","#2563eb"],"Arriendo":["🏠","#4f46e5"],"Servicios":["💡","#ca8a04"],"Suscripciones":["🔁","#9333ea"],"Ocio":["🎬","#db2777"],"Salud":["💊","#0d9488"],"Ropa":["👕","#c026d3"],"Deudas":["💳","#b45309"],"Préstamos":["🤝","#64748b"],"Imprevistos":["⚠️","#d97706"],"Otros":["📦","#6b7280"],"Pago de tarjeta":["💳","#0891b2"],"Nómina":["💼","#059669"],"Transferencia recibida":["🏦","#0284c7"],"Venta":["🏷️","#65a30d"],"Otros ingresos":["➕","#10b981"]};
 var ESTK=[[/mascota|perro|gato|veterin/i,"🐾"],[/educ|colegio|universidad|curso|libro/i,"📚"],[/regalo/i,"🎁"],[/gym|gimnasio|deporte/i,"🏋️"],[/viaje|hotel|vuelo/i,"✈️"],[/internet|celular|plan de datos/i,"📱"],[/impuesto|dian|predial/i,"🧾"],[/ahorro/i,"🐷"],[/belleza|peluquer|barber/i,"💈"]],PAL=["#0ea5e9","#f43f5e","#84cc16","#a855f7","#f59e0b","#14b8a6","#ec4899","#6366f1"];
@@ -740,7 +671,7 @@ sheet($("dlg"));sheet($("dCu"));sheet($("dBor"));sheet($("dAcc"));
 [$("nuevo"),$("smsb")].forEach(function(b){var t=0,lp=false;b.addEventListener("touchstart",function(){lp=false;t=setTimeout(function(){lp=true},450)},{passive:true});b.addEventListener("touchend",function(){clearTimeout(t)});b.addEventListener("click",function(e){if(lp){e.stopImmediatePropagation();e.preventDefault();lp=false}},true)});
 var CUO=[];
 function lcuo(){try{var r=localStorage.getItem("mis-gastos-cuotas");CUO=r?JSON.parse(r):[]}catch(e){CUO=[]}}
-function gcuo(){try{localStorage.setItem("mis-gastos-cuotas",JSON.stringify(CUO))}catch(e){}}
+function gcuo(){try{localStorage.setItem("mis-gastos-cuotas",JSON.stringify(CUO))}catch(e){}cfgSt("cuo")}
 function calcCuota(P,n,t){var i=t/100;if(!i)return Math.round(P/n);var f=Math.pow(1+i,n);return Math.round(P*(i*f)/(f-1))}
 function cuPrev(){var P=parseInt($("cuM").value.replace(/\D/g,""),10)||0,n=parseInt($("cuN").value,10)||0,t=parseFloat(String($("cuT").value).replace(",","."))||0;
   if(P>0&&n>0){var c=calcCuota(P,n,t);$("cuP").innerHTML="Cuota fija mensual: <b>"+cop0.format(c)+"</b><br>Total a pagar: "+cop0.format(c*n)+" · Intereses: "+cop0.format(c*n-P)}else $("cuP").textContent="Escribe el monto y las cuotas para ver la cuota mensual."}
@@ -810,6 +741,83 @@ $("cpM").onclick=function(){CP="mes";CS=null;catRes()};$("cpA").onclick=function
   function fin(){clearTimeout(lp);if(lpd){lpd=false;SWIPED=Date.now()}if(!el)return;var m=el,w=m.parentNode,d=dx,h=lock==="h";el=null;lock=null;dx=0;m.style.transition="transform .2s";m.style.transform="";w.classList.remove("dr","dl");
     if(h){SWIPED=Date.now();if(d>64)editar(w.dataset.eid);else if(d<-64)borrar(w.dataset.eid)}}
   document.addEventListener("pointerup",fin);document.addEventListener("pointercancel",fin);document.addEventListener("contextmenu",function(e){if(e.target.closest&&e.target.closest(".sx .mov"))e.preventDefault()})})();
+var SY={on:false,email:"",uid:"",tomb:{},cu:{},cfgU:{},cfgCu:{},last:0},SNAP={},SYB=false,SYQ=false,SYT=0,FB=null,FBP=null;
+var FBBASE="https://www.gstatic.com/firebasejs/10.12.2/";
+var FCFG=window.TEBILLE_CONFIG||{};
+function cfgOk(){return !!(FCFG.apiKey&&FCFG.projectId&&FCFG.apiKey.indexOf("PEGA")!==0)}
+function lsy(){try{var r=localStorage.getItem("mis-gastos-sync");if(r)SY=Object.assign(SY,JSON.parse(r))}catch(e){}}
+function gsy(){try{localStorage.setItem("mis-gastos-sync",JSON.stringify(SY))}catch(e){}}
+function lsw(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function jx(x){var c={};for(var k in x)if(k!=="u")c[k]=x[k];return JSON.stringify(c)}
+function snapInit(){lsy();datos.forEach(function(x){if(x.u!==undefined)SNAP[x.id]=jx(x)})}
+function stamp(){var a=Date.now(),v={};datos.forEach(function(x){v[x.id]=1;var j=jx(x);if(SNAP[x.id]!==j){x.u=a;SNAP[x.id]=jx(x)}});Object.keys(SNAP).forEach(function(id){if(!v[id]){delete SNAP[id];SY.tomb[id]=a}});gsy()}
+function cfgSt(n){if(!SY.on)return;SY.cfgU[n]=Date.now();gsy();programar()}
+function cfgInit(){var a=Date.now();if(!SY.cfgU.presu&&Object.keys(PRE).length)SY.cfgU.presu=a;if(!SY.cfgU.tarj&&TARJ.length)SY.cfgU.tarj=a;if(!SY.cfgU.cuo&&CUO.length)SY.cfgU.cuo=a;gsy()}
+function programar(){if(!SY.on)return;clearTimeout(SYT);SYT=setTimeout(function(){sync()},2500)}
+function nubeEstado(t){$("nbMsg").textContent=t}
+function nubeUI(){$("nbIn").hidden=!!SY.on;$("nbAjW").hidden=!!SY.on;$("nbOps").hidden=!SY.on;if(SY.on)nubeEstado("Conectado como "+(SY.email||"tu cuenta")+(SY.last?". Última sincronización: "+new Date(SY.last).toLocaleString("es-CO"):".")+(SY.ajeno?" Al terminar, usa «Cerrar sesión y borrar datos de este dispositivo».":""))}
+function errNube(e){var c=e&&(e.code||e.message)||"";
+  if(/popup-blocked/.test(c))return "El navegador bloqueó la ventana de Google. Permite ventanas emergentes y vuelve a intentar.";
+  if(/popup-closed|cancelled-popup/.test(c))return "Cerraste la ventana de Google antes de terminar.";
+  if(/unauthorized-domain/.test(c))return "Falta autorizar el dominio "+location.hostname+" en Authentication → Configuración.";
+  if(/operation-not-allowed/.test(c))return "Falta activar Google como método de acceso en Authentication.";
+  if(/permission-denied/.test(c))return "Firestore rechazó el acceso. Revisa que el correo de las reglas sea el de esta cuenta"+(SY.email?" ("+SY.email+")":"")+".";
+  if(/unavailable|network|offline/.test(c))return "Sin conexión. Se sincronizará cuando vuelva internet.";
+  return "No se pudo sincronizar ("+c+").";}
+function fbCargar(){if(FBP)return FBP;var b=FBBASE;
+  FBP=Promise.all([import(b+"firebase-app.js"),import(b+"firebase-auth.js"),import(b+"firebase-firestore.js")]).then(function(m){
+    var app=m[0].initializeApp(FCFG),au=m[1].getAuth(app);FB={A:m[1],F:m[2],auth:au,db:m[2].getFirestore(app)};
+    m[1].onAuthStateChanged(au,function(u){if(u){SY.on=true;SY.email=u.email||"";gsy();nubeUI();sync()}else{if(SY.on){SY.on=false;gsy()}nubeUI()}});return FB
+  }).catch(function(e){FBP=null;nubeEstado("No se pudo cargar Firebase. ¿Tienes internet?");throw e});return FBP}
+function nubePrep(){if(!cfgOk()){nubeEstado("Falta completar el archivo config.js con los datos de Firebase.");return}fbCargar().catch(function(){})}
+function nubeInicio(){if(SY.on&&cfgOk())setTimeout(function(){fbCargar().catch(function(){})},1500)}
+async function sync(){
+  if(SYB){SYQ=true;return false}SYB=true;
+  try{
+    var f=await fbCargar(),u=f.auth.currentUser;if(!u)return false;
+    if(SY.uid!==u.uid){SY.uid=u.uid;SNAP={};SY.cu={};SY.tomb={};SY.cfgCu={};SY.cfgU={}}
+    stamp();cfgInit();nubeEstado("Sincronizando…");
+    var F=f.F,db=f.db,nube={},cambio=false;
+    (await F.getDocs(F.collection(db,"usuarios",u.uid,"movs"))).forEach(function(d){nube[d.id]=d.data()});
+    var por={};datos.forEach(function(x){por[x.id]=x});
+    Object.keys(nube).forEach(function(id){var d=nube[id],loc=por[id],lu=loc?(loc.u||0):Math.max(SY.tomb[id]||0,SY.cu[id]||0);
+      if((d.u||0)>lu){cambio=true;
+        if(d.del){if(loc)datos=datos.filter(function(x){return String(x.id)!==id});delete SNAP[id];delete SY.tomb[id]}
+        else{var o=JSON.parse(d.j),i=-1;o.u=d.u;datos.forEach(function(x,k){if(String(x.id)===id)i=k});if(i>=0)datos[i]=o;else datos.push(o);SNAP[id]=jx(o);delete SY.tomb[id]}
+        SY.cu[id]=d.u}});
+    var sub=[];
+    datos.forEach(function(x){var id=String(x.id),n=nube[id];if((x.u||0)>(SY.cu[id]||0)&&(!n||x.u>(n.u||0)))sub.push([id,{j:jx(x),u:x.u,del:false}])});
+    Object.keys(SY.tomb).forEach(function(id){var n=nube[id],t=SY.tomb[id];if(t>(SY.cu[id]||0)&&(!n||t>(n.u||0)))sub.push([id,{del:true,u:t}])});
+    for(var k=0;k<sub.length;k+=400){var lote=sub.slice(k,k+400),wb=F.writeBatch(db);
+      lote.forEach(function(p){wb.set(F.doc(db,"usuarios",u.uid,"movs",p[0]),p[1])});await wb.commit();
+      lote.forEach(function(p){SY.cu[p[0]]=p[1].u;if(p[1].del)delete SY.tomb[p[0]]})}
+    var cn={},pend=[];
+    (await F.getDocs(F.collection(db,"usuarios",u.uid,"cfg"))).forEach(function(d){cn[d.id]=d.data()});
+    ["presu","tarj","cuo"].forEach(function(nm){var d=cn[nm],lu=SY.cfgU[nm]||0,cu=SY.cfgCu[nm]||0;
+      if(d&&(d.u||0)>Math.max(lu,cu)){var v=JSON.parse(d.v);if(nm==="presu"){PRE=v;lsw(PK,PRE)}else if(nm==="tarj"){TARJ=v;lsw(TK,TARJ)}else{CUO=v;lsw("mis-gastos-cuotas",CUO)}SY.cfgCu[nm]=d.u;SY.cfgU[nm]=d.u;cambio=true}
+      else if(lu>cu&&(!d||lu>(d.u||0)))pend.push([nm,lu])});
+    if(pend.length){var wc=F.writeBatch(db);pend.forEach(function(p){var val=p[0]==="presu"?PRE:p[0]==="tarj"?TARJ:CUO;wc.set(F.doc(db,"usuarios",u.uid,"cfg",p[0]),{v:JSON.stringify(val),u:p[1]})});await wc.commit();pend.forEach(function(p){SY.cfgCu[p[0]]=p[1]})}
+    persist();SY.last=Date.now();gsy();if(cambio)pintar();nubeUI();return true;
+  }catch(e){nubeEstado(errNube(e));return false}
+  finally{SYB=false;if(SYQ){SYQ=false;programar()}}}
+$("nbEntrar").onclick=function(){
+  if(!cfgOk()){nubeEstado("Falta completar el archivo config.js con los datos de Firebase.");return}
+  if(!FB){nubeEstado("Cargando Firebase… toca otra vez en un momento.");fbCargar().catch(function(){});return}
+  SY.ajeno=$("nbAjeno").checked;gsy();
+  FB.A.setPersistence(FB.auth,SY.ajeno?FB.A.browserSessionPersistence:FB.A.browserLocalPersistence).catch(function(){}).then(function(){return FB.A.signInWithPopup(FB.auth,new FB.A.GoogleAuthProvider())}).catch(function(e){nubeEstado(errNube(e))})};
+$("nbSync").onclick=function(){sync()};
+async function salir(borrar){
+  if(borrar&&SY.on){var ok=false;try{ok=await sync()}catch(e){}
+    if(!ok){nubeEstado("No se pudo sincronizar antes de borrar, así que no se borró nada. Revisa tu conexión e inténtalo otra vez.");return}}
+  try{var f=await fbCargar();await f.A.signOut(f.auth)}catch(e){}
+  SY.on=false;SY.email="";SY.ajeno=false;gsy();
+  if(borrar){["mis-gastos-v1","mis-gastos-presu","mis-gastos-tarj","mis-gastos-cuotas","mis-gastos-sync","mis-gastos-resp"].forEach(function(k){try{localStorage.removeItem(k)}catch(e){}});
+    datos=[];PRE={};TARJ=[];CUO=[];SNAP={};SY={on:false,email:"",uid:"",tomb:{},cu:{},cfgU:{},cfgCu:{},last:0};pintar();nubeUI();
+    nubeEstado("Sesión cerrada y datos borrados de este dispositivo. En la nube siguen guardados.")}
+  else{nubeUI();nubeEstado("Sesión cerrada. Tus datos siguen en este dispositivo.")}}
+$("nbSalir").onclick=function(){salir(false)};
+$("nbBorrar").onclick=function(){pregunta("¿Cerrar sesión y borrar los datos de este dispositivo?","Se borran de ESTE dispositivo los movimientos, presupuestos, tarjetas y cuotas. En la nube siguen guardados. Antes de borrar se sincroniza para no perder cambios.","Cerrar y borrar",function(){salir(true)})};
+document.addEventListener("visibilitychange",function(){if(!document.hidden&&SY.on&&navigator.onLine)programar()});
 function op(v){return '<option value="'+esc(v)+'">'+esc(v)+'</option>'}
 function campos(){var c=$("cat").value;$("cOtro").hidden=!/^Otros/.test(c);$("pPer").hidden=c!=="Préstamos";$("perL").textContent=tipo==="e"?"¿A quién le prestaste?":"¿Quién te prestó o te pagó?";$("mOtro").hidden=$("medio").value!=="Otro banco";
   $("tOtro").hidden=!($("medio").value==="Tarjeta de crédito"&&tipo==="e");
@@ -844,8 +852,7 @@ $("ps").onclick=function(){pag++;pintar();window.scrollTo(0,0)};
 $("exp").onclick=function(){var b=new Blob([JSON.stringify({movs:datos,presu:PRE,tarj:TARJ,cuo:CUO})],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="tebille-respaldo-"+hoy()+".json";document.body.appendChild(a);a.click();a.remove();rsp()};
 $("impb").onclick=function(){$("imp").click()};
 $("imp").onchange=function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var raw=JSON.parse(r.result),n=Array.isArray(raw)?raw:raw.movs;if(!Array.isArray(n))throw 0;if(!Array.isArray(raw)&&raw.presu&&typeof raw.presu==="object"){PRE=raw.presu;gpre()}if(!Array.isArray(raw)&&Array.isArray(raw.tarj)){TARJ=raw.tarj;gtar()}if(!Array.isArray(raw)&&Array.isArray(raw.cuo)){CUO=raw.cuo;gcuo()}var ids={};datos.forEach(function(x){ids[x.id]=1});var add=n.filter(function(x){return x&&x.id&&x.fecha&&x.monto&&!ids[x.id]});datos=datos.concat(add);guardar();pag=1;pintar();alert("Se importaron "+add.length+" movimientos.")}catch(e){alert("El archivo no es un respaldo válido.")}};r.readAsText(f);this.value=""};
-
-cargar();lpre();ltar();lcuo();opciones();pintar();
+cargar();lpre();ltar();lcuo();snapInit();opciones();pintar();nubeUI();nubeInicio();
 window.addEventListener("hashchange",ruta);lseg();if(location.hash==="#restablecer-bloqueo"){SEG.on=false;gseg();history.replaceState(null,"",location.pathname+location.search);document.documentElement.removeAttribute("data-lock");toast("Bloqueo desactivado. Tus datos siguen aquí.")}segUI();if(SEG.on&&debeBloq())bloquear();else ruta();
 if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0)navigator.serviceWorker.register("sw.js").catch(function(){});
 </script>
