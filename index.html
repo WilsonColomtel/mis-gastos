@@ -773,22 +773,6 @@ $("imp").onchange=function(){var f=this.files[0];if(!f)return;var r=new FileRead
 cargar();lpre();ltar();lcuo();opciones();pintar();
 window.addEventListener("hashchange",ruta);lseg();if(location.hash==="#restablecer-bloqueo"){SEG.on=false;gseg();history.replaceState(null,"",location.pathname+location.search);document.documentElement.removeAttribute("data-lock");toast("Bloqueo desactivado. Tus datos siguen aquí.")}segUI();if(SEG.on&&debeBloq())bloquear();else ruta();
 if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0)navigator.serviceWorker.register("sw.js").catch(function(){});
-<script type="module">
-  import { cargarDatos, guardarDato } from './services/storage.service.js';
-
-  // Pega aquí todo tu código de JavaScript original de Tebille...
-
-  window.cargar = cargar;
-  window.lpre = lpre;
-  window.ltar = ltar;
-  window.lcuo = lcuo;
-  window.opciones = opciones;
-
-  cargarDatos().then(datos => {
-    if (typeof cargar === 'function') {
-      cargar();
-    }
-  });
 </script>
 </body>
 </html>
