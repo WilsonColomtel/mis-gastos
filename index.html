@@ -10,6 +10,25 @@
 <script>try{var sg=JSON.parse(localStorage.getItem("mis-gastos-seg")||"{}");if(sg.on&&Date.now()-(+localStorage.getItem("mis-gastos-ult")||0)>=(sg.min===undefined?5:sg.min)*60000)document.documentElement.setAttribute("data-lock","1")}catch(e){}</script>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
+
+<!-- CONFIGURACIÓN Y SDKS DE FIREBASE (AUTH + FIRESTORE) -->
+<script src="config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script>
+  if (window.TEBILLE_CONFIG) {
+    try {
+      firebase.initializeApp(window.TEBILLE_CONFIG);
+      window.db = firebase.firestore();
+      window.auth = firebase.auth();
+      console.log("Firebase Auth y Firestore inicializados correctamente.");
+    } catch(e) {
+      console.error("Error al inicializar Firebase:", e);
+    }
+  }
+</script>
+
 <style>
 :root{--bg:#f3f6f4;--card:#fff;--ink:#14231e;--mute:#62736c;--line:#dbe3df;--in:#0f7a4f;--out:#c2410c;--brand:#14463a;--onbrand:#fff;--nav:rgba(255,255,255,.62);--navink:#3b4a44;--navb:rgba(0,0,0,.08);
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -192,7 +211,6 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(3
 .pills{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
 .pill{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:600 14px Figtree,system-ui,sans-serif}
 .pill.on{background:var(--brand);color:var(--onbrand);border-color:var(--brand)}
-/* tarjeta del saldo: pastel suave */
 :root{--bbg:#e2f0e8;--bbd:#cfe3d8;--bink:#14463a;--bmute:#4d6b5f;--bchip:#f0f7f3;--binc:#0f7a4f;--bexp:#b4410f}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bbg:#1b2d26;--bbd:#2a423a;--bink:#cfeee0;--bmute:#8db3a3;--bchip:#14221d;--binc:#4fd19b;--bexp:#ff9a62}}
 :root[data-theme="dark"]{--bbg:#1b2d26;--bbd:#2a423a;--bink:#cfeee0;--bmute:#8db3a3;--bchip:#14221d;--binc:#4fd19b;--bexp:#ff9a62}
@@ -347,12 +365,68 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(3
 <dialog id="dBor" class="sheet"><div class="grab"></div><h2 style="margin:0 0 6px;color:var(--ink)">¿Eliminar este movimiento?</h2><div id="bTxt" class="dd" style="margin-bottom:14px"></div><div class="acc"><button class="c" id="bNo" type="button">Cancelar</button><button class="g" id="bOk" type="button" style="background:#dc2626;color:#fff">Eliminar</button></div></dialog>
 <dialog id="dAcc" class="sheet"><div class="grab"></div><h2 id="aTxt" style="margin:0 0 12px;color:var(--ink);font-size:18px"></h2><div class="aa"><button type="button" id="aEd">✎ Editar</button><button type="button" id="aDel" class="r">Eliminar</button><button type="button" id="aNo">Cancelar</button></div></dialog>
 <div id="ext"></div>
+
 <script>
 var CATS={e:["Comida","Mercado","Arriendo","Servicios","Transporte","Suscripciones","Ocio","Salud","Ropa","Deudas","Préstamos","Otros"],i:["Nómina","Transferencia recibida","Venta","Préstamos","Otros ingresos"]};
 var MEDIOS=["Efectivo","Bancolombia","Nequi","Transferencia","Tarjeta de crédito","Tarjeta débito","Otro banco"];
 var KEY="mis-gastos-v1",datos=[],ULT=[],PREV=0,SAL=0,TARJ=[],pag=1,tipo="e",ver=new Date();ver.setDate(1);
-function cargar(){try{var r=localStorage.getItem(KEY);datos=r?JSON.parse(r):[]}catch(e){datos=[];document.getElementById("aviso").hidden=false}}
-function guardar(){try{localStorage.setItem(KEY,JSON.stringify(datos))}catch(e){document.getElementById("aviso").hidden=false}}
+
+function cargar(){
+  try{
+    var r=localStorage.getItem(KEY);
+    datos=r?JSON.parse(r):[];
+  }catch(e){
+    datos=[];
+    document.getElementById("aviso").hidden=false;
+  }
+
+  // Sincronización con Firebase Authentication y Firestore
+  if(window.auth && window.db){
+    window.auth.onAuthStateChanged(function(user){
+      if(user){
+        window.db.collection("usuarios").doc(user.uid).get().then(function(doc){
+          if(doc.exists){
+            var d=doc.data();
+            if(d.movimientos){
+              datos=d.movimientos;
+              PRE=d.presupuesto||{};
+              TARJ=d.tarjetas||[];
+              CUO=d.cuotas||[];
+              pintar();
+            }
+          }
+        }).catch(function(e){console.log("Error al cargar de la nube:",e);});
+      } else {
+        var provider=new firebase.auth.GoogleAuthProvider();
+        window.auth.signInWithPopup(provider).catch(function(error){
+          console.log("Autenticación requerida:",error);
+        });
+      }
+    });
+  }
+}
+
+function guardar(){
+  try{
+    localStorage.setItem(KEY,JSON.stringify(datos));
+    
+    var user=window.auth?window.auth.currentUser:null;
+    if(window.db && user){
+      window.db.collection("usuarios").doc(user.uid).set({
+        movimientos:datos,
+        presupuesto:PRE,
+        tarjetas:TARJ,
+        cuotas:CUO,
+        ultimaActualizacion:new Date()
+      }).catch(function(e){
+        console.error("Error al sincronizar con Firebase:",e);
+      });
+    }
+  }catch(e){
+    document.getElementById("aviso").hidden=false;
+  }
+}
+
 var $=function(i){return document.getElementById(i)};
 var cop0=new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}),OC=false,cop={format:function(n){return OC?"$ ••••":cop0.format(n)}};
 try{OC=localStorage.getItem("mis-gastos-oc")==="1"}catch(e){}
@@ -770,6 +844,7 @@ $("ps").onclick=function(){pag++;pintar();window.scrollTo(0,0)};
 $("exp").onclick=function(){var b=new Blob([JSON.stringify({movs:datos,presu:PRE,tarj:TARJ,cuo:CUO})],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="tebille-respaldo-"+hoy()+".json";document.body.appendChild(a);a.click();a.remove();rsp()};
 $("impb").onclick=function(){$("imp").click()};
 $("imp").onchange=function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var raw=JSON.parse(r.result),n=Array.isArray(raw)?raw:raw.movs;if(!Array.isArray(n))throw 0;if(!Array.isArray(raw)&&raw.presu&&typeof raw.presu==="object"){PRE=raw.presu;gpre()}if(!Array.isArray(raw)&&Array.isArray(raw.tarj)){TARJ=raw.tarj;gtar()}if(!Array.isArray(raw)&&Array.isArray(raw.cuo)){CUO=raw.cuo;gcuo()}var ids={};datos.forEach(function(x){ids[x.id]=1});var add=n.filter(function(x){return x&&x.id&&x.fecha&&x.monto&&!ids[x.id]});datos=datos.concat(add);guardar();pag=1;pintar();alert("Se importaron "+add.length+" movimientos.")}catch(e){alert("El archivo no es un respaldo válido.")}};r.readAsText(f);this.value=""};
+
 cargar();lpre();ltar();lcuo();opciones();pintar();
 window.addEventListener("hashchange",ruta);lseg();if(location.hash==="#restablecer-bloqueo"){SEG.on=false;gseg();history.replaceState(null,"",location.pathname+location.search);document.documentElement.removeAttribute("data-lock");toast("Bloqueo desactivado. Tus datos siguen aquí.")}segUI();if(SEG.on&&debeBloq())bloquear();else ruta();
 if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0)navigator.serviceWorker.register("sw.js").catch(function(){});
