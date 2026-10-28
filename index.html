@@ -262,6 +262,10 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(3
 .lgb{width:92px;height:92px;margin:0 0 6px;border-radius:22px}
 #bloq h1{margin:0 0 4px}
 .pt2[hidden]{display:none}
+.hgm{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 0}
+.hgm small{color:var(--mute)}
+.lnk{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;flex:1 1 140px}
+.sw a{color:var(--brand)}
 </style>
 </head>
 <body>
@@ -269,7 +273,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(3
 <main>
 <h1><svg class="lg" aria-hidden="true"><use href="#logo"/></svg>Tebille</h1>
 
-<div id="vAjus"><section><h2>Apariencia</h2><div class="seg"><button id="thL">☀️ Claro</button><button id="thD">🌙 Oscuro</button><button id="thA">⚙️ Sistema</button></div></section><section><h2>Respaldo y almacenamiento</h2><div class="card2"><label for="rFrec" style="margin-top:0">Recordarme hacer respaldo</label><select id="rFrec"><option value="7">Cada 7 días</option><option value="15">Cada 15 días</option><option value="30">Cada 30 días</option><option value="0">Nunca</option></select><div id="rEst" class="dd" style="margin-top:8px"></div><div class="pt2"><button id="rAhora" class="mini2">Exportar respaldo ahora</button></div></div></section><section><h2>Nube (Firebase)</h2><div class="card2"><div id="nbMsg" class="dd">Guarda una copia de tus datos en tu cuenta de Google y úsalos en otro celular.</div><div class="pt2" id="nbIn"><button id="nbEntrar" class="mini2">Iniciar sesión con Google</button></div><div id="nbAjW" style="margin-top:8px"><label class="sw"><span>Es un equipo que no es mío (no recordar mi sesión)</span><input type="checkbox" id="nbAjeno"></label></div><div class="pt2" id="nbOps" hidden><button id="nbSync" class="mini2">Sincronizar ahora</button><button id="nbSalir" class="mini2">Cerrar sesión</button><button id="nbBorrar" class="mini2">Cerrar sesión y borrar datos de este dispositivo</button></div></div></section><section><h2>Seguridad</h2><div class="card2">
+<div id="vAjus"><section><h2>Apariencia</h2><div class="seg"><button id="thL">☀️ Claro</button><button id="thD">🌙 Oscuro</button><button id="thA">⚙️ Sistema</button></div></section><section><h2>Respaldo y almacenamiento</h2><div class="card2"><label for="rFrec" style="margin-top:0">Recordarme hacer respaldo</label><select id="rFrec"><option value="7">Cada 7 días</option><option value="15">Cada 15 días</option><option value="30">Cada 30 días</option><option value="0">Nunca</option></select><div id="rEst" class="dd" style="margin-top:8px"></div><div class="pt2"><button id="rAhora" class="mini2">Exportar respaldo ahora</button></div></div></section><section><h2>Nube (Firebase)</h2><div class="card2"><div id="nbMsg" class="dd">Guarda una copia de tus datos en tu cuenta de Google y úsalos en otro celular.</div><div id="nbAcW" style="margin:8px 0"><label class="sw"><span>Acepto los <a href="terminos.html">términos y condiciones</a> y la <a href="privacidad.html">política de privacidad</a>, y autorizo el tratamiento de mis datos.</span><input type="checkbox" id="nbAcepto"></label></div><div class="pt2" id="nbIn"><button id="nbEntrar" class="mini2">Iniciar sesión con Google</button></div><div id="nbAjW" style="margin-top:8px"><label class="sw"><span>Es un equipo que no es mío (no recordar mi sesión)</span><input type="checkbox" id="nbAjeno"></label></div><div class="pt2" id="nbOps" hidden><button id="nbSync" class="mini2">Sincronizar ahora</button><button id="nbSalir" class="mini2">Cerrar sesión</button><button id="nbBorrar" class="mini2">Cerrar sesión y borrar datos de este dispositivo</button></div></div></section><section id="hgS" hidden><h2>Hogar compartido</h2><div class="card2"><div id="hgInv" class="aviso alr" hidden><span id="hgInvT"></span><div class="pt2"><button id="hgJ1" class="mini2">Unirme y sumar mis datos</button><button id="hgJ2" class="mini2">Unirme sin mis datos</button><button id="hgJ0" class="mini2">Ahora no</button></div></div><div id="hgInfo"></div><div id="hgPend" class="dd" style="margin-top:8px"></div><label for="hgMail">Invitar por correo de Google</label><div class="pt2"><input id="hgMail" type="email" placeholder="correo@gmail.com" autocomplete="off"><button id="hgBtn" class="mini2">Invitar</button></div><div id="hgMsg" class="dd" style="margin-top:8px"></div><div class="pt2"><button id="hgSalir" class="mini2" hidden>Salir de este hogar</button></div></div></section><section><h2>Legal</h2><div class="card2"><div class="pt2"><a class="mini2 lnk" href="terminos.html">Términos y condiciones</a><a class="mini2 lnk" href="privacidad.html">Política de privacidad</a></div><div class="dd" style="margin-top:8px">Versión <span id="lgV"></span></div></div></section><section><h2>Seguridad</h2><div class="card2">
 <label class="sw"><span>Pedir autenticación al abrir la app</span><input type="checkbox" id="segOn"></label>
 <div id="segOpc" hidden>
 <label for="segMet">Método</label><select id="segMet"><option value="bio">Huella o bloqueo del celular</option><option value="pin">PIN de la app (4 a 6 dígitos)</option></select>
@@ -408,7 +412,7 @@ $("guardar").onclick=function(){
   var reg={id:EDIT||Date.now(),tipo:tipo,monto:n,cat:cat,medio:med,fecha:$("fecha").value||hoy(),nota:$("nota").value.trim()};
   if(cat==="Préstamos")reg.persona=per;
   if(med==="Tarjeta de crédito"&&tipo==="e"){var tj=$("tarj").value;if(!tj){alert("Primero agrega tu tarjeta en «Tarjetas por pagar».");return}reg.tarjeta=tj;var cu=Math.max(1,Math.min(60,parseInt($("cuo").value,10)||1));if(cu>1)reg.cuotas=cu}
-  var ed=!!EDIT;if(EDIT){var k=-1;datos.forEach(function(y,i){if(y.id===EDIT)k=i});if(k>=0)datos[k]=reg;EDIT=null}else datos.push(reg);
+  var ed=!!EDIT;if(EDIT){var k=-1;datos.forEach(function(y,i){if(y.id===EDIT)k=i});if(k>=0){if(datos[k].por)reg.por=datos[k].por;datos[k]=reg}EDIT=null}else{if(SY.on&&SY.nombre)reg.por=SY.nombre;datos.push(reg)}
   guardar();$("dlg").close();toast((ed?"Cambios guardados":(tipo==="e"?"Gasto":"Ingreso")+" guardado")+" · "+cop.format(n));
   var f=($("fecha").value||hoy()).split("-");ver=new Date(+f[0],+f[1]-1,1);pag=1;pintar();
 };
@@ -643,7 +647,7 @@ $("tInicio").onclick=function(){vista("in")};$("tFin").onclick=function(){vista(
 var ESTC={"Mercado":["🛒","#16a34a"],"Comida":["🍽️","#f97316"],"Gasolina":["⛽","#dc2626"],"Transporte":["🚌","#2563eb"],"Arriendo":["🏠","#4f46e5"],"Servicios":["💡","#ca8a04"],"Suscripciones":["🔁","#9333ea"],"Ocio":["🎬","#db2777"],"Salud":["💊","#0d9488"],"Ropa":["👕","#c026d3"],"Deudas":["💳","#b45309"],"Préstamos":["🤝","#64748b"],"Imprevistos":["⚠️","#d97706"],"Otros":["📦","#6b7280"],"Pago de tarjeta":["💳","#0891b2"],"Nómina":["💼","#059669"],"Transferencia recibida":["🏦","#0284c7"],"Venta":["🏷️","#65a30d"],"Otros ingresos":["➕","#10b981"]};
 var ESTK=[[/mascota|perro|gato|veterin/i,"🐾"],[/educ|colegio|universidad|curso|libro/i,"📚"],[/regalo/i,"🎁"],[/gym|gimnasio|deporte/i,"🏋️"],[/viaje|hotel|vuelo/i,"✈️"],[/internet|celular|plan de datos/i,"📱"],[/impuesto|dian|predial/i,"🧾"],[/ahorro/i,"🐷"],[/belleza|peluquer|barber/i,"💈"]],PAL=["#0ea5e9","#f43f5e","#84cc16","#a855f7","#f59e0b","#14b8a6","#ec4899","#6366f1"];
 function estCat(c){var e=ESTC[c];if(e)return e;var h=0,i,ic="🏷️";for(i=0;i<c.length;i++)h=(h*31+c.charCodeAt(i))%997;for(i=0;i<ESTK.length;i++)if(ESTK[i][0].test(c)){ic=ESTK[i][1];break}return[ic,PAL[h%8]]}
-function fila(x){var e=estCat(x.cat);return '<div class="sx" data-eid="'+x.id+'"><div class="swa l">✎ Editar</div><div class="swa r">Eliminar ✕</div><div class="mov" data-eid="'+x.id+'" style="border-left:4px solid '+e[1]+'"><div class="ci" style="background:'+e[1]+'2e">'+e[0]+'</div><div class="t"><b>'+esc(x.cat)+'</b><span>'+esc(x.medio)+tn(x)+(x.persona?" · "+(x.tipo==="e"?"a ":"de ")+esc(x.persona):"")+(x.nota?" · "+esc(x.nota):"")+'</span></div><div class="m '+x.tipo+'">'+(x.tipo==="i"?"+":"−")+cop.format(x.monto)+'</div></div></div>'}
+function fila(x){var e=estCat(x.cat);return '<div class="sx" data-eid="'+x.id+'"><div class="swa l">✎ Editar</div><div class="swa r">Eliminar ✕</div><div class="mov" data-eid="'+x.id+'" style="border-left:4px solid '+e[1]+'"><div class="ci" style="background:'+e[1]+'2e">'+e[0]+'</div><div class="t"><b>'+esc(x.cat)+'</b><span>'+esc(x.medio)+tn(x)+por(x)+(x.persona?" · "+(x.tipo==="e"?"a ":"de ")+esc(x.persona):"")+(x.nota?" · "+esc(x.nota):"")+'</span></div><div class="m '+x.tipo+'">'+(x.tipo==="i"?"+":"−")+cop.format(x.monto)+'</div></div></div>'}
 function reci(){var k=mesKey(),a=datos.filter(function(x){return x.fecha.slice(0,7)===k}).sort(function(u,v){return v.fecha.localeCompare(u.fecha)||v.id-u.id}).slice(0,5);$("recientes").innerHTML=a.length?a.map(fila).join(""):'<div class="vacio">No hay movimientos en este mes.<br>Toca «Agregar» para registrar uno.</div>'}
 $("recientes").onclick=$("lista").onclick;
 $("verTodos").onclick=function(){vista("bus")};
@@ -741,7 +745,7 @@ $("cpM").onclick=function(){CP="mes";CS=null;catRes()};$("cpA").onclick=function
   function fin(){clearTimeout(lp);if(lpd){lpd=false;SWIPED=Date.now()}if(!el)return;var m=el,w=m.parentNode,d=dx,h=lock==="h";el=null;lock=null;dx=0;m.style.transition="transform .2s";m.style.transform="";w.classList.remove("dr","dl");
     if(h){SWIPED=Date.now();if(d>64)editar(w.dataset.eid);else if(d<-64)borrar(w.dataset.eid)}}
   document.addEventListener("pointerup",fin);document.addEventListener("pointercancel",fin);document.addEventListener("contextmenu",function(e){if(e.target.closest&&e.target.closest(".sx .mov"))e.preventDefault()})})();
-var SY={on:false,email:"",uid:"",tomb:{},cu:{},cfgU:{},cfgCu:{},last:0},SNAP={},SYB=false,SYQ=false,SYT=0,FB=null,FBP=null;
+var SY={on:false,email:"",uid:"",hid:"",sk:"",nombre:"",rech:"",hog:null,inv:null,tomb:{},cu:{},cfgU:{},cfgCu:{},last:0},SNAP={},SYB=false,SYQ=false,SYT=0,FB=null,FBP=null;
 var FBBASE="https://www.gstatic.com/firebasejs/10.12.2/";
 var FCFG=window.TEBILLE_CONFIG||{};
 function cfgOk(){return !!(FCFG.apiKey&&FCFG.projectId&&FCFG.apiKey.indexOf("PEGA")!==0)}
@@ -755,13 +759,13 @@ function cfgSt(n){if(!SY.on)return;SY.cfgU[n]=Date.now();gsy();programar()}
 function cfgInit(){var a=Date.now();if(!SY.cfgU.presu&&Object.keys(PRE).length)SY.cfgU.presu=a;if(!SY.cfgU.tarj&&TARJ.length)SY.cfgU.tarj=a;if(!SY.cfgU.cuo&&CUO.length)SY.cfgU.cuo=a;gsy()}
 function programar(){if(!SY.on)return;clearTimeout(SYT);SYT=setTimeout(function(){sync()},2500)}
 function nubeEstado(t){$("nbMsg").textContent=t}
-function nubeUI(){$("nbIn").hidden=!!SY.on;$("nbAjW").hidden=!!SY.on;$("nbOps").hidden=!SY.on;if(SY.on)nubeEstado("Conectado como "+(SY.email||"tu cuenta")+(SY.last?". Última sincronización: "+new Date(SY.last).toLocaleString("es-CO"):".")+(SY.ajeno?" Al terminar, usa «Cerrar sesión y borrar datos de este dispositivo».":""))}
+function nubeUI(){hogarUI();$("nbIn").hidden=!!SY.on;$("nbAjW").hidden=!!SY.on;$("nbAcW").hidden=!!SY.on;$("nbOps").hidden=!SY.on;if(SY.on)nubeEstado("Conectado como "+(SY.email||"tu cuenta")+(SY.last?". Última sincronización: "+new Date(SY.last).toLocaleString("es-CO"):".")+(SY.ajeno?" Al terminar, usa «Cerrar sesión y borrar datos de este dispositivo».":""))}
 function errNube(e){var c=e&&(e.code||e.message)||"";
   if(/popup-blocked/.test(c))return "El navegador bloqueó la ventana de Google. Permite ventanas emergentes y vuelve a intentar.";
   if(/popup-closed|cancelled-popup/.test(c))return "Cerraste la ventana de Google antes de terminar.";
   if(/unauthorized-domain/.test(c))return "Falta autorizar el dominio "+location.hostname+" en Authentication → Configuración.";
   if(/operation-not-allowed/.test(c))return "Falta activar Google como método de acceso en Authentication.";
-  if(/permission-denied/.test(c))return "Firestore rechazó el acceso. Revisa que el correo de las reglas sea el de esta cuenta"+(SY.email?" ("+SY.email+")":"")+".";
+  if(/permission-denied/.test(c))return "Firestore rechazó el acceso. Si te quitaron de un hogar, sincroniza otra vez para crear o buscar el tuyo. Si no, revisa las reglas de Firestore.";
   if(/unavailable|network|offline/.test(c))return "Sin conexión. Se sincronizará cuando vuelva internet.";
   return "No se pudo sincronizar ("+c+").";}
 function fbCargar(){if(FBP)return FBP;var b=FBBASE;
@@ -775,10 +779,13 @@ async function sync(){
   if(SYB){SYQ=true;return false}SYB=true;
   try{
     var f=await fbCargar(),u=f.auth.currentUser;if(!u)return false;
-    if(SY.uid!==u.uid){SY.uid=u.uid;SNAP={};SY.cu={};SY.tomb={};SY.cfgCu={};SY.cfgU={}}
+    if(SY.uid!==u.uid){SY.uid=u.uid;SY.hid="";SY.hog=null;SY.inv=null;SY.sk=""}
+    SY.nombre=((u.displayName||u.email||"").split(" ")[0]||"").slice(0,20);
+    if((await hogarResolver(f,u))==="pendiente"){nubeEstado("Tienes una invitación a un hogar. Revísala abajo, en «Hogar compartido».");hogarUI();return false}
+    if(SY.sk!==SY.hid){SNAP={};SY.cu={};SY.tomb={};SY.cfgCu={};SY.cfgU={};SY.sk=SY.hid}
     stamp();cfgInit();nubeEstado("Sincronizando…");
     var F=f.F,db=f.db,nube={},cambio=false;
-    (await F.getDocs(F.collection(db,"usuarios",u.uid,"movs"))).forEach(function(d){nube[d.id]=d.data()});
+    (await F.getDocs(F.collection(db,"hogares",SY.hid,"movs"))).forEach(function(d){nube[d.id]=d.data()});
     var por={};datos.forEach(function(x){por[x.id]=x});
     Object.keys(nube).forEach(function(id){var d=nube[id],loc=por[id],lu=loc?(loc.u||0):Math.max(SY.tomb[id]||0,SY.cu[id]||0);
       if((d.u||0)>lu){cambio=true;
@@ -789,21 +796,22 @@ async function sync(){
     datos.forEach(function(x){var id=String(x.id),n=nube[id];if((x.u||0)>(SY.cu[id]||0)&&(!n||x.u>(n.u||0)))sub.push([id,{j:jx(x),u:x.u,del:false}])});
     Object.keys(SY.tomb).forEach(function(id){var n=nube[id],t=SY.tomb[id];if(t>(SY.cu[id]||0)&&(!n||t>(n.u||0)))sub.push([id,{del:true,u:t}])});
     for(var k=0;k<sub.length;k+=400){var lote=sub.slice(k,k+400),wb=F.writeBatch(db);
-      lote.forEach(function(p){wb.set(F.doc(db,"usuarios",u.uid,"movs",p[0]),p[1])});await wb.commit();
+      lote.forEach(function(p){wb.set(F.doc(db,"hogares",SY.hid,"movs",p[0]),p[1])});await wb.commit();
       lote.forEach(function(p){SY.cu[p[0]]=p[1].u;if(p[1].del)delete SY.tomb[p[0]]})}
     var cn={},pend=[];
-    (await F.getDocs(F.collection(db,"usuarios",u.uid,"cfg"))).forEach(function(d){cn[d.id]=d.data()});
+    (await F.getDocs(F.collection(db,"hogares",SY.hid,"cfg"))).forEach(function(d){cn[d.id]=d.data()});
     ["presu","tarj","cuo"].forEach(function(nm){var d=cn[nm],lu=SY.cfgU[nm]||0,cu=SY.cfgCu[nm]||0;
       if(d&&(d.u||0)>Math.max(lu,cu)){var v=JSON.parse(d.v);if(nm==="presu"){PRE=v;lsw(PK,PRE)}else if(nm==="tarj"){TARJ=v;lsw(TK,TARJ)}else{CUO=v;lsw("mis-gastos-cuotas",CUO)}SY.cfgCu[nm]=d.u;SY.cfgU[nm]=d.u;cambio=true}
       else if(lu>cu&&(!d||lu>(d.u||0)))pend.push([nm,lu])});
-    if(pend.length){var wc=F.writeBatch(db);pend.forEach(function(p){var val=p[0]==="presu"?PRE:p[0]==="tarj"?TARJ:CUO;wc.set(F.doc(db,"usuarios",u.uid,"cfg",p[0]),{v:JSON.stringify(val),u:p[1]})});await wc.commit();pend.forEach(function(p){SY.cfgCu[p[0]]=p[1]})}
+    if(pend.length){var wc=F.writeBatch(db);pend.forEach(function(p){var val=p[0]==="presu"?PRE:p[0]==="tarj"?TARJ:CUO;wc.set(F.doc(db,"hogares",SY.hid,"cfg",p[0]),{v:JSON.stringify(val),u:p[1]})});await wc.commit();pend.forEach(function(p){SY.cfgCu[p[0]]=p[1]})}
     persist();SY.last=Date.now();gsy();if(cambio)pintar();nubeUI();return true;
-  }catch(e){nubeEstado(errNube(e));return false}
+  }catch(e){if(/permission-denied/.test(e&&e.code||"")){SY.hid="";SY.hog=null;SY.sk="";gsy()}nubeEstado(errNube(e));return false}
   finally{SYB=false;if(SYQ){SYQ=false;programar()}}}
 $("nbEntrar").onclick=function(){
   if(!cfgOk()){nubeEstado("Falta completar el archivo config.js con los datos de Firebase.");return}
+  if(!$("nbAcepto").checked){nubeEstado("Para usar la nube, acepta los términos y la política de privacidad.");return}
   if(!FB){nubeEstado("Cargando Firebase… toca otra vez en un momento.");fbCargar().catch(function(){});return}
-  SY.ajeno=$("nbAjeno").checked;gsy();
+  SY.ajeno=$("nbAjeno").checked;SY.acepto={v:LEGAL_V,t:Date.now()};gsy();
   FB.A.setPersistence(FB.auth,SY.ajeno?FB.A.browserSessionPersistence:FB.A.browserLocalPersistence).catch(function(){}).then(function(){return FB.A.signInWithPopup(FB.auth,new FB.A.GoogleAuthProvider())}).catch(function(e){nubeEstado(errNube(e))})};
 $("nbSync").onclick=function(){sync()};
 async function salir(borrar){
@@ -812,12 +820,60 @@ async function salir(borrar){
   try{var f=await fbCargar();await f.A.signOut(f.auth)}catch(e){}
   SY.on=false;SY.email="";SY.ajeno=false;gsy();
   if(borrar){["mis-gastos-v1","mis-gastos-presu","mis-gastos-tarj","mis-gastos-cuotas","mis-gastos-sync","mis-gastos-resp"].forEach(function(k){try{localStorage.removeItem(k)}catch(e){}});
-    datos=[];PRE={};TARJ=[];CUO=[];SNAP={};SY={on:false,email:"",uid:"",tomb:{},cu:{},cfgU:{},cfgCu:{},last:0};pintar();nubeUI();
+    datos=[];PRE={};TARJ=[];CUO=[];SNAP={};SY={on:false,email:"",uid:"",hid:"",sk:"",nombre:"",rech:"",hog:null,inv:null,tomb:{},cu:{},cfgU:{},cfgCu:{},last:0};pintar();nubeUI();
     nubeEstado("Sesión cerrada y datos borrados de este dispositivo. En la nube siguen guardados.")}
   else{nubeUI();nubeEstado("Sesión cerrada. Tus datos siguen en este dispositivo.")}}
 $("nbSalir").onclick=function(){salir(false)};
 $("nbBorrar").onclick=function(){pregunta("¿Cerrar sesión y borrar los datos de este dispositivo?","Se borran de ESTE dispositivo los movimientos, presupuestos, tarjetas y cuotas. En la nube siguen guardados. Antes de borrar se sincroniza para no perder cambios.","Cerrar y borrar",function(){salir(true)})};
 document.addEventListener("visibilitychange",function(){if(!document.hidden&&SY.on&&navigator.onLine)programar()});
+function por(x){var n=SY.hog&&SY.hog.miembros?SY.hog.miembros.length:0;return n>1&&x.por?" · "+esc(x.por):""}
+function hgMsg(t){$("hgMsg").textContent=t}
+async function hogarResolver(f,u){
+  var F=f.F,db=f.db,em=(u.email||"").toLowerCase(),ptr=F.doc(db,"usuarios",u.uid);
+  if(!SY.hid){var p=await F.getDoc(ptr);if(p.exists())SY.hid=p.data().hid||""}
+  if(SY.hid){var hs=null;try{hs=await F.getDoc(F.doc(db,"hogares",SY.hid))}catch(e){hs=null}
+    if(hs&&hs.exists()&&(hs.data().miembros||[]).indexOf(u.uid)>=0)SY.hog=hs.data();else{SY.hid="";SY.hog=null}}
+  if(!SY.hid){(await F.getDocs(F.query(F.collection(db,"hogares"),F.where("miembros","array-contains",u.uid)))).forEach(function(d){if(!SY.hid){SY.hid=d.id;SY.hog=d.data()}})}
+  SY.inv=null;
+  (await F.getDocs(F.query(F.collection(db,"hogares"),F.where("invitados","array-contains",em)))).forEach(function(d){if(!SY.inv&&d.id!==SY.hid&&SY.rech!==d.id)SY.inv={id:d.id,d:d.data()}});
+  if(SY.inv&&!SY.hid){gsy();return "pendiente"}
+  if(!SY.hid){var ref=F.doc(F.collection(db,"hogares")),nm={},d={miembros:[u.uid],dueno:u.uid,invitados:[],nombres:nm,creado:Date.now()};
+    nm[u.uid]={n:SY.nombre,e:em};await F.setDoc(ref,d);SY.hid=ref.id;SY.hog=d}
+  await F.setDoc(ptr,{hid:SY.hid,acepto:SY.acepto||null});gsy();return "ok"}
+function hogarUI(){
+  var on=!!SY.on;$("hgS").hidden=!on;if(!on)return;
+  var h=SY.hog,mi=h?h.miembros||[]:[],nm=h?h.nombres||{}:{},yo=SY.uid,dueno=!!h&&h.dueno===yo;
+  $("hgInfo").innerHTML=h?'<b>'+(mi.length>1?'Hogar compartido ('+mi.length+' personas)':'Por ahora estás solo en tu hogar')+'</b>'+mi.map(function(id){var x=nm[id]||{};return '<div class="hgm"><span>'+esc(x.n||"Miembro")+' <small>'+esc(x.e||"")+'</small>'+(id===yo?' · tú':id===h.dueno?' · creó el hogar':'')+'</span>'+(dueno&&id!==yo?'<button class="mini" data-m="'+esc(id)+'" aria-label="Quitar del hogar">✕</button>':'')+'</div>'}).join(""):'';
+  var pe=h?h.invitados||[]:[];
+  $("hgPend").innerHTML=pe.length?'Invitaciones pendientes:'+pe.map(function(e){return '<div class="hgm"><span>'+esc(e)+'</span><button class="mini" data-q="'+esc(e)+'" aria-label="Quitar invitación">✕</button></div>'}).join(""):'';
+  $("hgInv").hidden=!SY.inv;
+  if(SY.inv)$("hgInvT").textContent=(((SY.inv.d.nombres||{})[SY.inv.d.dueno]||{}).n||"Alguien")+" te invitó a su hogar para llevar las finanzas juntos.";
+  $("hgSalir").hidden=!(h&&!dueno)}
+async function hgAct(fn){try{var f=FB||await fbCargar(),u=f.auth.currentUser;if(!u)return;await fn(f.F,f.db,u);await sync()}catch(e){hgMsg(errNube(e))}}
+async function hgDoc(F,db){var ref=F.doc(db,"hogares",SY.hid),s=await F.getDoc(ref);return{ref:ref,d:s.data()}}
+function wipeLocal(){["mis-gastos-v1","mis-gastos-presu","mis-gastos-tarj","mis-gastos-cuotas"].forEach(function(k){try{localStorage.removeItem(k)}catch(e){}});datos=[];PRE={};TARJ=[];CUO=[];SNAP={};SY.cu={};SY.tomb={};SY.cfgU={};SY.cfgCu={};pintar()}
+async function unirme(conDatos){var inv=SY.inv;if(!inv)return;
+  await hgAct(async function(F,db,u){var ref=F.doc(db,"hogares",inv.id),d=(await F.getDoc(ref)).data(),em=(u.email||"").toLowerCase(),nm=Object.assign({},d.nombres||{});nm[u.uid]={n:SY.nombre,e:em};
+    if(!conDatos)wipeLocal();
+    await F.updateDoc(ref,{miembros:(d.miembros||[]).concat([u.uid]),invitados:(d.invitados||[]).filter(function(x){return x!==em}),nombres:nm});
+    await F.setDoc(F.doc(db,"usuarios",u.uid),{hid:inv.id,acepto:SY.acepto||null});
+    SY.hid=inv.id;SY.hog=null;SY.inv=null;SY.sk="";SY.rech="";gsy()});hgMsg("Listo: ya eres parte del hogar.")}
+$("hgJ1").onclick=function(){unirme(true)};
+$("hgJ2").onclick=function(){pregunta("¿Unirte sin tus datos?","Se borran de este dispositivo tus movimientos actuales y empiezas con los del hogar. Lo que ya tengas en la nube no se borra.","Unirme sin mis datos",function(){unirme(false)})};
+$("hgJ0").onclick=function(){if(SY.inv){SY.rech=SY.inv.id;SY.inv=null;gsy();hogarUI();sync()}};
+$("hgBtn").onclick=function(){var em=$("hgMail").value.trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){hgMsg("Escribe un correo válido.");return}
+  hgAct(async function(F,db){var x=await hgDoc(F,db),inv=x.d.invitados||[],correos=Object.keys(x.d.nombres||{}).map(function(k){return(x.d.nombres[k].e||"").toLowerCase()});
+    if(inv.indexOf(em)>=0||correos.indexOf(em)>=0){hgMsg("Ese correo ya fue invitado o ya está en el hogar.");return}
+    if(inv.length>=5){hgMsg("Máximo 5 invitaciones pendientes.");return}
+    await F.updateDoc(x.ref,{invitados:inv.concat([em])});$("hgMail").value="";hgMsg("Invitación creada. Pídele que abra Tebille, inicie sesión con ese correo y toque «Unirme».")})};
+$("hgS").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;
+  if(b.dataset.q){var q=b.dataset.q;hgAct(async function(F,db){var x=await hgDoc(F,db);await F.updateDoc(x.ref,{invitados:(x.d.invitados||[]).filter(function(m){return m!==q})})})}
+  if(b.dataset.m){var id=b.dataset.m,nm=((SY.hog&&SY.hog.nombres||{})[id]||{}).n||"esta persona";
+    pregunta("¿Quitar a "+nm+" del hogar?","Dejará de ver y de editar los datos compartidos. Lo que ya registró se queda en el hogar.","Quitar",function(){hgAct(async function(F,db){var x=await hgDoc(F,db),n2=Object.assign({},x.d.nombres||{});delete n2[id];await F.updateDoc(x.ref,{miembros:(x.d.miembros||[]).filter(function(m){return m!==id}),nombres:n2});hgMsg("Persona retirada del hogar.")})})}
+  if(b.id==="hgSalir")pregunta("¿Salir de este hogar?","Dejarás de sincronizar con las demás personas. En este dispositivo te quedas con una copia de los datos y empiezas un hogar propio.","Salir",function(){hgAct(async function(F,db,u){var x=await hgDoc(F,db),n2=Object.assign({},x.d.nombres||{});delete n2[u.uid];await F.updateDoc(x.ref,{miembros:(x.d.miembros||[]).filter(function(m){return m!==u.uid}),nombres:n2});await F.setDoc(F.doc(db,"usuarios",u.uid),{hid:"",acepto:SY.acepto||null});SY.hid="";SY.hog=null;SY.sk="";gsy();hgMsg("Saliste del hogar. Empiezas uno propio con la copia de este dispositivo.")})})});
+var LEGAL_V="2026-10-28";
+$("lgV").textContent=LEGAL_V;
 function op(v){return '<option value="'+esc(v)+'">'+esc(v)+'</option>'}
 function campos(){var c=$("cat").value;$("cOtro").hidden=!/^Otros/.test(c);$("pPer").hidden=c!=="Préstamos";$("perL").textContent=tipo==="e"?"¿A quién le prestaste?":"¿Quién te prestó o te pagó?";$("mOtro").hidden=$("medio").value!=="Otro banco";
   $("tOtro").hidden=!($("medio").value==="Tarjeta de crédito"&&tipo==="e");
